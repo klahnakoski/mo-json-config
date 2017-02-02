@@ -16,37 +16,21 @@ import os
 from collections import Mapping
 from urlparse import urlparse
 
-import pyDots
-from pyDots import set_default, wrap, unwrap
+import mo_dots
+from mo_dots import set_default, wrap, unwrap
+from mo_json import json2value
+from mo_json_config.convert import value2url, ini2value
+from mo_logs import Log, Except
 
 DEBUG = False
-_convert = None
-_Log = None
-_Except = None
-
-
-def _late_import():
-    global _convert
-    global _Log
-    global _Except
-    from pyLibrary import convert as _convert
-    from MoLogs import Log as _Log
-    from MoLogs.exceptions import Except as _Except
-
-    _ = _convert
-    _ = _Log
-    _ = _Except
 
 
 def get(url):
     """
     USE json.net CONVENTIONS TO LINK TO INLINE OTHER JSON
     """
-    if not _Log:
-        _late_import()
-
     if url.find("://") == -1:
-        _Log.error("{{url}} must have a prototcol (eg http://) declared", url=url)
+        Log.error("{{url}} must have a prototcol (eg http://) declared", url=url)
 
     base = URL("")
     if url.startswith("file://") and url[7] != "/":
@@ -55,14 +39,14 @@ def get(url):
         else:
             base = URL("file://" + os.getcwd().rstrip("/") + "/.")
     elif url[url.find("://") + 3] != "/":
-        _Log.error("{{url}} must be absolute", url=url)
+        Log.error("{{url}} must be absolute", url=url)
 
     phase1 = _replace_ref(wrap({"$ref": url}), base)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     try:
         phase2 = _replace_locals(phase1, [phase1])
         return wrap(phase2)
     except Exception, e:
-        _Log.error("problem replacing locals in\n{{phase1}}", phase1=phase1, cause=e)
+        Log.error("problem replacing locals in\n{{phase1}}", phase1=phase1, cause=e)
 
 
 def expand(doc, doc_url):
@@ -70,11 +54,8 @@ def expand(doc, doc_url):
     ASSUMING YOU ALREADY PULED THE doc FROM doc_url, YOU CAN STILL USE THE
     EXPANDING FEATURE
     """
-    if not _Log:
-        _late_import()
-
     if doc_url.find("://") == -1:
-        _Log.error("{{url}} must have a prototcol (eg http://) declared", url=doc_url)
+        Log.error("{{url}} must have a prototcol (eg http://) declared", url=doc_url)
 
     phase1 = _replace_ref(doc, URL(doc_url))  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     phase2 = _replace_locals(phase1, [phase1])
@@ -113,13 +94,13 @@ def _replace_ref(node, url):
         if ref.scheme in scheme_loaders:
             new_value = scheme_loaders[ref.scheme](ref, url)
         else:
-            raise _Log.error("unknown protocol {{scheme}}", scheme=ref.scheme)
+            raise Log.error("unknown protocol {{scheme}}", scheme=ref.scheme)
 
         if ref.fragment:
-            new_value = pyDots.get_attr(new_value, ref.fragment)
+            new_value = mo_dots.get_attr(new_value, ref.fragment)
 
         if DEBUG:
-            _Log.note("Replace {{ref}} with {{new_value}}", ref=ref, new_value=new_value)
+            Log.note("Replace {{ref}} with {{new_value}}", ref=ref, new_value=new_value)
 
         if not output:
             output = new_value
@@ -127,7 +108,7 @@ def _replace_ref(node, url):
             output = unwrap(set_default(output, new_value))
 
         if DEBUG:
-            _Log.note("Return {{output}}", output=output)
+            Log.note("Return {{output}}", output=output)
 
         return output
     elif isinstance(node, list):
@@ -162,14 +143,14 @@ def _replace_locals(node, doc_path):
             for i, p in enumerate(frag):
                 if p != ".":
                     if i>len(doc_path):
-                        _Log.error("{{frag|quote}} reaches up past the root document",  frag=frag)
-                    new_value = pyDots.get_attr(doc_path[i-1], frag[i::])
+                        Log.error("{{frag|quote}} reaches up past the root document",  frag=frag)
+                    new_value = mo_dots.get_attr(doc_path[i-1], frag[i::])
                     break
             else:
                 new_value = doc_path[len(frag) - 1]
         else:
             # ABSOLUTE
-            new_value = pyDots.get_attr(doc_path[-1], frag)
+            new_value = mo_dots.get_attr(doc_path[-1], frag)
 
         new_value = _replace_locals(new_value, [new_value] + doc_path)
 
@@ -192,7 +173,7 @@ def _replace_locals(node, doc_path):
 ###############################################################################
 
 def get_file(ref, url):
-    from pyLibrary.env.files import File
+    from mo_files import File
 
     if ref.path.startswith("~"):
         home_path = os.path.expanduser("~")
@@ -220,23 +201,20 @@ def get_file(ref, url):
 
     try:
         if DEBUG:
-            _Log.note("reading file {{path}}", path=path)
+            Log.note("reading file {{path}}", path=path)
         content = File(path).read()
     except Exception, e:
         content = None
-        _Log.error("Could not read file {{filename}}", filename=path, cause=e)
+        Log.error("Could not read file {{filename}}", filename=path, cause=e)
 
     try:
-        new_value = _convert.json2value(content, params=ref.query, flexible=True, leaves=True)
+        new_value = json2value(content, params=ref.query, flexible=True, leaves=True)
     except Exception, e:
-        if not _Except:
-            _late_import()
-
-        e = _Except.wrap(e)
+        e = Except.wrap(e)
         try:
-            new_value = _convert.ini2value(content)
+            new_value = ini2value(content)
         except Exception, f:
-            raise _Log.error("Can not read {{file}}", file=path, cause=e)
+            raise Log.error("Can not read {{file}}", file=path, cause=e)
     new_value = _replace_ref(new_value, ref)
     return new_value
 
@@ -245,7 +223,7 @@ def get_http(ref, url):
     from pyLibrary.env import http
 
     params = url.query
-    new_value = _convert.json2value(http.get(ref), params=params, flexible=True, leaves=True)
+    new_value = json2value(http.get(ref), params=params, flexible=True, leaves=True)
     return new_value
 
 
@@ -253,7 +231,7 @@ def get_env(ref, url):
     # GET ENVIRONMENT VARIABLES
     ref = ref.host
     try:
-        new_value = _convert.json2value(os.environ[ref])
+        new_value = json2value(os.environ[ref])
     except Exception, e:
         new_value = os.environ[ref]
     return new_value
@@ -299,9 +277,6 @@ class URL(object):
     """
 
     def __init__(self, value):
-        if not _convert:
-            _late_import()
-
         try:
             self.scheme = None
             self.host = None
@@ -318,17 +293,17 @@ class URL(object):
                 scheme, suffix = value.split("//")
                 self.scheme = scheme.rstrip(":")
                 parse(self, suffix, 0, 1)
-                self.query = wrap(_convert.url_param2value(self.query))
+                self.query = wrap(url_param2value(self.query))
             else:
                 output = urlparse(value)
                 self.scheme = output.scheme
                 self.port = output.port
                 self.host = output.netloc.split(":")[0]
                 self.path = output.path
-                self.query = wrap(_convert.url_param2value(output.query))
+                self.query = wrap(url_param2value(output.query))
                 self.fragment = output.fragment
         except Exception, e:
-            _Log.error("problem parsing {{value}} to URL", value=value, cause=e)
+            Log.error("problem parsing {{value}} to URL", value=value, cause=e)
     def __nonzero__(self):
         if self.scheme or self.host or self.port or self.path or self.query or self.fragment:
             return True
@@ -353,9 +328,59 @@ class URL(object):
             else:
                 url += b"/"+str(self.path)
         if self.query:
-            url = url + '?' + _convert.value2url(self.query)
+            url = url + '?' + value2url(self.query)
         if self.fragment:
-            url = url + '#' + _convert.value2url(self.fragment)
+            url = url + '#' + value2url(self.fragment)
         return url
+
+
+def url_param2value(param):
+    """
+    CONVERT URL QUERY PARAMETERS INTO DICT
+    """
+    if isinstance(param, unicode):
+        param = param.encode("ascii")
+
+    def _decode(v):
+        output = []
+        i = 0
+        while i < len(v):
+            c = v[i]
+            if c == "%":
+                d = (v[i + 1:i + 3]).decode("hex")
+                output.append(d)
+                i += 3
+            else:
+                output.append(c)
+                i += 1
+
+        output = (b"".join(output)).decode("latin1")
+        try:
+            return json2value(output)
+        except Exception:
+            pass
+        return output
+
+
+    query = {}
+    for p in param.split(b'&'):
+        if not p:
+            continue
+        if p.find(b"=") == -1:
+            k = p
+            v = True
+        else:
+            k, v = p.split(b"=")
+            v = _decode(v)
+
+        u = query.get(k)
+        if u is None:
+            query[k] = v
+        elif isinstance(u, list):
+            u += [v]
+        else:
+            query[k] = [u, v]
+
+    return query
 
 

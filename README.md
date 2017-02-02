@@ -1,17 +1,16 @@
 More JSON Configuration!
 ========================
 
-
 A JSON template format intended for configuration files.
 
 Motivation
 ----------
 
-This module has superficial similarity to the [JSON Reference Draft](https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-03), which seems inspired by the committee-driven XPath specification. Of course, there are a few improvements:
+This module has superficial similarity to the [JSON Reference Draft](https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-03), which seems inspired by the committee-driven XPath specification, and as a result, made some poor design choices. Here are the improvements this module makes:
 
-1. This `jsons.ref` module uses the dot (`.`) as a path separator in the URL fragment. For example, an absolute reference looks like `{"$ref": "#message.type.name"}`, and a relative reference looks like `{"$ref": "#..type.name"}`.   This syntax better matches that used by Javascript.
-2. The additional properties founf in a `$ref` object are used to override the referenced object. This allows you to reference a default document, and override the particular properties needed. *more below*
-3. Furthermore, references can accept URL parameters: JSON is treated like a string template for more sophisticated value replacement. *see below*
+1. This module uses the dot (`.`) as a path separator in the URL fragment. For example, an absolute reference looks like `{"$ref": "#message.type.name"}`, and a relative reference looks like `{"$ref": "#..type.name"}`.   This syntax better matches that used by Javascript.
+2. The properties found in a `$ref` object are not ignored. Rather, they are to *override* the referenced object properties. This allows you to reference a default document, and replace the particular properties as needed. *more below*
+3. References can accept URL parameters: JSON is treated like a string template for more sophisticated value replacement. *see below*
 4. You can reference files and environment variables in addition to general URLs.
 
 Usage
@@ -19,7 +18,7 @@ Usage
 
 Load your settings easily:
 
-    settings = jsons.ref.get(url):
+    settings = mo_json_config.get(url):
 
 
 Comments
@@ -280,37 +279,6 @@ The `quote` transformation will deal with quoting, so ...
 ```
 
 Please see [`expand_template`](../README.md#function-expand_template) for more on the parameter replacement, and transformations available
-
-
-Module `typed_encoder`
-=====================
-
-
-One reason NoSQL documents stores are wonderful is the fact their schema can automatically expand to accept new properties.   Unfortunately, this flexibility is not limitless: A string assigned to property prevents an object being assigned to the same, or visa-versa.
-
-This module translates JSON documents into "typed" form; which allows document containers to store both objects and primitives in the same property value. This allows storage of values with no containing object!
-
-###How it works
-
-Typed JSON uses `$value` and `$object` properties to markup the original JSON:
-
-* All JSON objects are annotated with `"$object":"."`, which makes querying object existence (especially the empty object) easier.
-* All primitive values are replaced with an object with a single `$value` property: So `"value"` gets mapped to `{"$value": "value"}`.
-
-Of course, the typed JSON has a different form than the original, and queries into the documents store must take this into account. Fortunately, the use of typed JSON is intended to be hidden behind a query abstraction layer.
-
-
-Function `typed_encode()`
-------------------------
-
-Accepts a `dict`, `list`, or primitive value, and generates the typed JSON that can be inserted into a document store.
-
-
-Function `json2typed()`
------------------------
-
-Converts an existing JSON unicode string and returns the typed JSON unicode string for the same.
-
 
 
 ---
