@@ -5,10 +5,7 @@
 util/.svn
 build
 dist
-pyLibrary.egg-info
+*.egg-info
 *.txt
 *.json
 *.tab
-
-/examples
-/pyDots
