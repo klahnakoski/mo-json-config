@@ -1,2 +1,5 @@
-pyDots
+requests
+mo-dots
 mo-logs
+mo-json
+mo-files

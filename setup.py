@@ -45,14 +45,14 @@ def find_packages(where='.', lib_prefix='', exclude=()):
 setup(
     name='mo-json-config',
     version="1.0.17001",
-    description='More JSON Configuration!',
+    description='More JSON Configuration! JSON configuration files with `$ref` and template overlays',
     long_description=long_desc,
     author='Kyle Lahnakoski',
     author_email='kyle@lahnakoski.com',
     url='https://github.com/klahnakoski/mo-json-config',
     license='MPL 2.0',
     packages=find_packages(".", lib_prefix=""),
-    install_requires=['pyDots'],
+    install_requires=['requests', 'mo-dots', 'mo-logs', 'mo-times', 'mo-json', 'mo_files'],
     include_package_data=True,
     zip_safe=False,
     classifiers=[  #https://pypi.python.org/pypi?%3Aaction=list_classifiers
