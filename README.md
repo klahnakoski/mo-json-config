@@ -16,7 +16,7 @@ This module has superficial similarity to the [JSON Reference Draft](https://too
 Usage
 -----
 
-Load your settings easily:
+Load your application settings with:
 
     settings = mo_json_config.get(url):
 
