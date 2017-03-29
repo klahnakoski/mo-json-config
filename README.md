@@ -278,7 +278,7 @@ The `quote` transformation will deal with quoting, so ...
 	}
 ```
 
-Please see [`expand_template`](../README.md#function-expand_template) for more on the parameter replacement, and transformations available
+Please see [`expand_template()` in the `strings` module](https://github.com/klahnakoski/mo-logs/blob/dev/mo_logs/strings.py) for more on the parameter replacement, and transformations available
 
 
 ---
