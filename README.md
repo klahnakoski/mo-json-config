@@ -274,7 +274,7 @@ the URL paramters are used to expand the given document, **then** the `$ref` pro
     }}
 
 
-## Parameterized References
+## Parameterized JSON
 
 The `param` scheme is a good way to set property values in a document, but sometimes that is not enough.  Sometimes you want to parameterize property names, or change the document structure in unconventional ways. For these cases, JSON documents are allowed named parameters at the unicode level. Parameters are surrounded by moustaches `{{.}}`:
 
