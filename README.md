@@ -223,7 +223,7 @@ the dot-delimited path into the document:
 
 ### Environment Variables Reference
 
-json.ref uses the unconventional `env` scheme for accessing environment variables:
+`mo-json-config` uses the unconventional `env` scheme for accessing environment variables:
 
 ```python
     {
@@ -232,10 +232,51 @@ json.ref uses the unconventional `env` scheme for accessing environment variable
         "password": {"$ref": "env://MAIL_PASSWORD"}
     }
 ```
+### Parameters Reference
+
+You can reference the variables found in `$ref` URL by using the `param` scheme. For example, the following  JSON document demands that it be provided with a `password` parameter:  
+
+    { # LOCATED AT http://example.com/machine_config.json
+        "host": "mail.example.com",
+        "username": "ekyle"
+        "password": {"$ref": "param:///password"}
+    }
+
+**The `param` scheme does not conform to the URL spec: It only accepts dot-delimited paths.**
+
+This parametric JSON can be expanded with a $ref
+
+	{"config": {
+		"$ref": "http://example.com/machine_config.json?password=pass123"
+	}}
+
+expands to 
+
+    {"config": {
+        "host": "mail.example.com",
+        "username": "ekyle"
+        "password": "pass123"
+    }}
+
+URL parameters and `$ref` properties can conflict. Let's consider 
+
+	{"config": {
+		"$ref": "http://example.com/machine_config.json?password=pass123",
+		"password": "123456"
+	}}
+
+the URL paramters are used to expand the given document, **then** the `$ref` properties override the contents of the document:
+
+    {"config": {
+        "host": "mail.example.com",
+        "username": "ekyle"
+        "password": "123456"
+    }}
+
 
 ## Parameterized References
 
-JSON documents are allowed named parameters, which are surrounded by moustaches `{{.}}`.
+The `param` scheme is a good way to set property values in a document, but sometimes that is not enough.  Sometimes you want to parameterize property names, or change the document structure in unconventional ways. For these cases, JSON documents are allowed named parameters at the unicode level. Parameters are surrounded by moustaches `{{.}}`:
 
 ```javascript
 	{//above_example.json

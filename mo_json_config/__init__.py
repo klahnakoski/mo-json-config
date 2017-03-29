@@ -17,7 +17,7 @@ from collections import Mapping
 from urlparse import urlparse
 
 import mo_dots
-from mo_dots import set_default, wrap, unwrap
+from mo_dots import set_default, wrap, unwrap, Data
 from mo_json import json2value
 from mo_json_config.convert import value2url, ini2value
 from mo_logs import Log, Except
@@ -30,6 +30,7 @@ def get(url):
     """
     USE json.net CONVENTIONS TO LINK TO INLINE OTHER JSON
     """
+    url = str(url)
     if url.find("://") == -1:
         Log.error("{{url}} must have a prototcol (eg http://) declared", url=url)
 
@@ -50,15 +51,22 @@ def get(url):
         Log.error("problem replacing locals in\n{{phase1}}", phase1=phase1, cause=e)
 
 
-def expand(doc, doc_url):
+def expand(doc, doc_url="param://", params=None):
     """
     ASSUMING YOU ALREADY PULED THE doc FROM doc_url, YOU CAN STILL USE THE
     EXPANDING FEATURE
+
+    :param doc: THE DATA STRUCTURE FROM JSON SOURCE
+    :param doc_url: THE URL THIS doc CAME FROM (DEFAULT USES params AS A DOCUMENT SOURCE)
+    :param params: EXTRA PARAMETERS NOT FOUND IN THE doc_url PARAMETERS (WILL SUPERSEDE PARAMETERS FROM doc_url)
+    :return: EXPANDED JSON-SERIALIZABLE STRUCTURE
     """
     if doc_url.find("://") == -1:
         Log.error("{{url}} must have a prototcol (eg http://) declared", url=doc_url)
 
-    phase1 = _replace_ref(doc, URL(doc_url))  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    url = URL(doc_url)
+    url.query = set_default(url.query, params)
+    phase1 = _replace_ref(doc, url)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     phase2 = _replace_locals(phase1, [phase1])
     return wrap(phase2)
 
@@ -314,6 +322,9 @@ class URL(object):
             return True
         return False
 
+    def __unicode__(self):
+        return self.__str__().decode('utf8')  # ASSUME chr<128 ARE VALID UNICODE
+
     def __str__(self):
         url = b""
         if self.host:
@@ -361,8 +372,7 @@ def url_param2value(param):
             pass
         return output
 
-
-    query = {}
+    query = Data()
     for p in param.split(b'&'):
         if not p:
             continue

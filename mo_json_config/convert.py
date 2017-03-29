@@ -16,8 +16,8 @@ import StringIO
 from collections import Mapping
 
 from mo_dots import wrap
+from mo_json import value2json
 from mo_logs import Log
-from mo_logs.convert import value2json
 
 
 def int2hex(value, size):
@@ -72,7 +72,11 @@ def value2url(value):
         Log.error("Can not encode None into a URL")
 
     if isinstance(value, Mapping):
-        output = b"&".join([value2url(k) + b"=" + (value2url(v) if isinstance(v, basestring) else value2url(value2json(v))) for k, v in value.items()])
+        value_ = wrap(value)
+        output = b"&".join([
+            value2url(k) + b"=" + (value2url(v) if isinstance(v, basestring) else value2url(value2json(v)))
+            for k, v in value_.leaves()
+        ])
     elif isinstance(value, unicode):
         output = b"".join(_map2url[c] for c in value.encode('utf8'))
     elif isinstance(value, str):
