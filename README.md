@@ -55,7 +55,7 @@ Example References
 
 The `$ref` property is special. Its value is interpreted as a URL pointing to more JSON
 
-###Absolute Internal Reference
+### Absolute Internal Reference
 
 The simplest form of URL is an absolute reference to a node in the same
 document:
@@ -78,7 +78,7 @@ with the value it points to:
     }
 ```
 
-###Relative Internal References
+### Relative Internal References
 
 References that start with dot (`.`) are relative, with each additional dot
 referring to successive parents.   In this case the `..` refers to the
@@ -91,7 +91,7 @@ ref-object's parent, and expands just like the previous example:
     }
 ```
 
-###File References
+### File References
 
 Configuration is often stored on the local file system. You can in-line the
 JSON found in a file by using the `file://` scheme:
@@ -129,14 +129,14 @@ which will be expanded at run-time to:
 Please notice the triple slash (`///`) is referring to an absolute file
 reference.
 
-###References To Objects
+### References To Objects
 
 Ref-objects that point to other objects (dicts) are not replaced completely,
 but rather are merged with the target; with the ref-object
 properties taking precedence.   This is seen in the example above: The "host"
 property is not overwritten by the target's.
 
-###Relative File Reference
+### Relative File Reference
 
 Here is the same, using a relative file reference; which is relative to the
 file that contains this JSON
@@ -149,7 +149,7 @@ file that contains this JSON
     }
 ```
 
-###Home Directory Reference
+### Home Directory Reference
 
 You may also use the tilde (`~`) to refer to the current user's home directory.
 Here is the same again, but this example can be anywhere in the file system.
@@ -162,7 +162,7 @@ Here is the same again, but this example can be anywhere in the file system.
     }
 ```
 
-###HTTP Reference
+### HTTP Reference
 
 Configuration can be stored remotely, especially in the case of larger
 configurations which are too unwieldy to inline:
@@ -173,7 +173,7 @@ configurations which are too unwieldy to inline:
     }
 ```
 
-###Scheme-Relative Reference
+### Scheme-Relative Reference
 
 You are also able to leave the scheme off, so that whole constellations of
 configuration files can refer to each other no matter if they are on the local
@@ -193,7 +193,7 @@ And, of course, relative references are also allowed:
     }
 ```
 
-###Fragment Reference
+### Fragment Reference
 
 Some remote configuration files are quite large...
 
@@ -221,9 +221,9 @@ the dot-delimited path into the document:
     }
 ```
 
-###Environment Variables Reference
+### Environment Variables Reference
 
-json.ref uses the unconventional `env` scheme for accessing environment variables:
+`mo-json-config` uses the unconventional `env` scheme for accessing environment variables:
 
 ```python
     {
@@ -232,10 +232,51 @@ json.ref uses the unconventional `env` scheme for accessing environment variable
         "password": {"$ref": "env://MAIL_PASSWORD"}
     }
 ```
+### Parameters Reference
 
-##Parameterized References
+You can reference the variables found in `$ref` URL by using the `param` scheme. For example, the following  JSON document demands that it be provided with a `password` parameter:  
 
-JSON documents are allowed named parameters, which are surrounded by moustaches `{{.}}`.
+    { # LOCATED AT http://example.com/machine_config.json
+        "host": "mail.example.com",
+        "username": "ekyle"
+        "password": {"$ref": "param:///password"}
+    }
+
+**The `param` scheme does not conform to the URL spec: It only accepts dot-delimited paths.**
+
+This parametric JSON can be expanded with a $ref
+
+	{"config": {
+		"$ref": "http://example.com/machine_config.json?password=pass123"
+	}}
+
+expands to 
+
+    {"config": {
+        "host": "mail.example.com",
+        "username": "ekyle"
+        "password": "pass123"
+    }}
+
+URL parameters and `$ref` properties can conflict. Let's consider 
+
+	{"config": {
+		"$ref": "http://example.com/machine_config.json?password=pass123",
+		"password": "123456"
+	}}
+
+the URL paramters are used to expand the given document, **then** the `$ref` properties override the contents of the document:
+
+    {"config": {
+        "host": "mail.example.com",
+        "username": "ekyle"
+        "password": "123456"
+    }}
+
+
+## Parameterized JSON
+
+The `param` scheme is a good way to set property values in a document, but sometimes that is not enough.  Sometimes you want to parameterize property names, or change the document structure in unconventional ways. For these cases, JSON documents are allowed named parameters at the unicode level. Parameters are surrounded by moustaches `{{.}}`:
 
 ```javascript
 	{//above_example.json
@@ -278,7 +319,7 @@ The `quote` transformation will deal with quoting, so ...
 	}
 ```
 
-Please see [`expand_template`](../README.md#function-expand_template) for more on the parameter replacement, and transformations available
+Please see [`expand_template()` in the `strings` module](https://github.com/klahnakoski/mo-logs/blob/dev/mo_logs/strings.py) for more on the parameter replacement, and transformations available
 
 
 ---
