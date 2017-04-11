@@ -44,7 +44,7 @@ def find_packages(where='.', lib_prefix='', exclude=()):
 
 setup(
     name='mo-json-config',
-    version="1.0.17085",
+    version="1.0.17101",
     description='More JSON Configuration! JSON configuration files with `$ref` and template overlays',
     long_description=long_desc,
     author='Kyle Lahnakoski',
