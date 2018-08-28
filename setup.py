@@ -44,7 +44,7 @@ def find_packages(where='.', lib_prefix='', exclude=()):
 
 setup(
     name='mo-json-config',
-    version="2.16.18199",
+    version="2.18.18240",
     description='More JSON Configuration! JSON configuration files with `$ref` and template overlays',
     long_description=long_desc,
     author='Kyle Lahnakoski',
@@ -52,7 +52,7 @@ setup(
     url='https://github.com/klahnakoski/mo-json-config',
     license='MPL 2.0',
     packages=find_packages(".", lib_prefix=""),
-    install_requires=["mo-dots>=2.7.18148","mo-files>=2.16.18199","mo-future>=2.3.18147","mo-json>=2.16.18199","mo-logs>=2.16.18199","requests"],
+    install_requires=["mo-dots>=2.18.18240","mo-files>=2.18.18240","mo-future>=2.18.18240","mo-json>=2.18.18240","mo-logs>=2.18.18240","requests"],
     include_package_data=True,
     zip_safe=False,
     classifiers=[  #https://pypi.python.org/pypi?%3Aaction=list_classifiers
