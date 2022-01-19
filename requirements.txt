@@ -1,7 +1,8 @@
 requests
 hjson
-mo-future>3
-mo-dots>3
-mo-logs>3
-mo-json>3
-mo-files>3
+mo-future
+mo-dots
+mo-logs
+mo-json
+mo-files
+keyring
