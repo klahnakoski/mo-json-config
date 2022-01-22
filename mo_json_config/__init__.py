@@ -58,8 +58,6 @@ def get(url):
             base = URL("file:///" + os.getcwd().replace(os.sep, "/").rstrip("/") + "/.")
         else:
             base = URL("file://" + os.getcwd().rstrip("/") + "/.")
-    elif url[url.find("://") + 3] != "/":
-        Log.error("{{url}} must be absolute", url=url)
 
     phase1 = _replace_ref(
         dict_to_data({"$ref": url}), base
@@ -272,7 +270,7 @@ def get_http(ref, url):
     import requests
 
     params = url.query
-    new_value = json2value(requests.get(ref), params=params, flexible=True, leaves=True)
+    new_value = json2value(requests.get(str(ref)).json(), params=params, flexible=True, leaves=True)
     return new_value
 
 
@@ -325,6 +323,7 @@ def _get_param(ref, url):
 
 scheme_loaders = {
     "http": get_http,
+    "https": get_http,
     "file": _get_file,
     "env": _get_env,
     "param": _get_param,
