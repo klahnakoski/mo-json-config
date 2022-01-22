@@ -289,7 +289,10 @@ def _get_env(ref, url):
 
 
 def _get_keyring(ref, url):
-    import keyring
+    try:
+        import keyring
+    except Exception:
+        Log.error("Missing keyring: `pip install keyring` to use this feature")
 
     # GET PASSWORD FROM KEYRING
     service_name = ref.host
