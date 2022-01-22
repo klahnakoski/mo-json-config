@@ -11,45 +11,53 @@ This module has superficial similarity to the [JSON Reference Draft](https://too
 3. References can accept URL parameters: JSON is treated like a string template for more sophisticated value replacement. *see below*
 4. You can reference files and environment variables in addition to general URLs.
 
-## Usage
+## Quick guide
 
-Load your application settings with:
+Load your configuration file with:
 
 ```python
 import mo_json_config
 
-settings = mo_json_config.get(url):
+config = mo_json_config.get("file://my_config.json")
 ```
 
-## Comments
+### Environment Variables
 
-End-of-line Comments are allowed, using either `#` or `//` prefix:
+Use the `env` scheme for accessing environment variables:
 
-```
-    "key1": "value1",  //Comment 1
-```
-
-```
-    "key1": "value1",  # Comment 1
-```
-
-Multiline comments are also allowed, using either Python's triple-quotes
-(`""" ... """`) or Javascript's block quotes `/*...*/`
-
-```
-{
-    "key1": /* Comment 1 */ "value1",
-}
-```
-
-```
-    "key1": """Comment 1""" "value1",
-```
+    {
+        "host": "mail.example.com",
+        "username": "ekyle",
+        "password": {"$ref": "env://MAIL_PASSWORD"}
+    }
 
 
-## Example References
+### Keystore Values
+
+The [keyring](https://pypi.org/project/keyring/) library can be used with the `keyring` scheme:
+ 
+    {
+        "host": "mail.example.com",
+        "username": "ekyle",
+        "password": {"$ref": "keyring://ekyle@mail.example.com"}
+    }
+
+The host is in `<username>@<server_name>` format; invoking `keyring.get_password(server_name, username)`.  You may also set the username as a parameter:
+
+
+    {
+        "host": "mail.example.com",
+        "username": "ekyle",
+        "password": {"$ref": "keyring://mail.example.com?username=ekyle"}
+    }
+
+> Be sure to `pip install keyring` to use keyring
+
+
+## Detailed Usage
 
 The `$ref` property is special. Its value is interpreted as a URL pointing to more JSON
+
 
 ### Absolute Internal Reference
 
@@ -212,37 +220,6 @@ the dot-delimited path into the document:
         "password": {"$ref": "//~/password.json#email.password"}
     }
 
-### Environment Variables
-
-`mo-json-config` uses the unconventional `env` scheme for accessing environment variables:
-
-
-    {
-        "host": "mail.example.com",
-        "username": "ekyle",
-        "password": {"$ref": "env://MAIL_PASSWORD"}
-    }
-
-
-### Keystore Values
-
-The [keyring](https://pypi.org/project/keyring/) library can be used with the `keyring` schema.  
-
-    {
-        "host": "mail.example.com",
-        "username": "ekyle",
-        "password": {"$ref": "keyring://ekyle@mail.example.com"}
-    }
-
-The host is in `<username>@<server_name>` format; invoking `keyring.get_password(server_name, username)`.  You may also set the usernam as a parameter:
-
-
-    {
-        "host": "mail.example.com",
-        "username": "ekyle",
-        "password": {"$ref": "keyring://ekyle@mail.example.com?username=ekyle"}
-    }
-
 ### Parameters Reference
 
 You can reference the variables found in `$ref` URL by using the `param` scheme. For example, the following  JSON document demands that it be provided with a `password` parameter:  
@@ -283,6 +260,32 @@ the URL paramters are used to expand the given document, **then** the `$ref` pro
         "username": "ekyle",
         "password": "123456"
     }}
+
+
+## Comments
+
+End-of-line Comments are allowed, using either `#` or `//` prefix:
+
+```
+    "key1": "value1",  //Comment 1
+```
+
+```
+    "key1": "value1",  # Comment 1
+```
+
+Multiline comments are also allowed, using either Python's triple-quotes
+(`""" ... """`) or Javascript's block quotes `/*...*/`
+
+```
+{
+    "key1": /* Comment 1 */ "value1",
+}
+```
+
+```
+    "key1": """Comment 1""" "value1",
+```
 
 
 ## Parameterized JSON
