@@ -306,7 +306,7 @@ def _get_keyring(ref, url):
         Log.error(
             "expecting password in the keyring for service_name={{service_name}} and"
             " username={{username}}",
-            service_nam=service_name,
+            service_name=service_name,
             username=username,
         )
 
