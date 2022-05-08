@@ -6,14 +6,12 @@
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Programming Language :: Python :: 3.7",
-//        "Programming Language :: Python :: 3.8",
-//        "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
     ],
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
     "extras_require": {"tests": ["mo-testing", "keyring"]},
     "install_requires": [
-                        "hjson",  "mo-dots==9.173.22126", "mo-files==4.180.22128",
+                        "hjson",  "mo-dots==9.173.22126", "mo-files==4.181.22128",
          "mo-future==6.2.21303",  "mo-json==6.173.22126",  "mo-logs==7.173.22126",
                      "requests"
     ],
@@ -363,5 +361,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "3.180.22128"
+    "version": "3.181.22128"
 }
