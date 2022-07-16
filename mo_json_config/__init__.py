@@ -16,7 +16,7 @@ from mo_dots import (
     is_data,
     is_list,
     set_default,
-    unwrap,
+    from_data,
     to_data,
     is_sequence,
     coalesce,
@@ -38,10 +38,7 @@ DEBUG = False
 
 def get_file(file):
     file = File(file)
-    if os.sep == "\\":
-        return get("file:///" + file.abspath)
-    else:
-        return get("file://" + file.abspath)
+    return get("file://" + file.abspath)
 
 
 def get(url):
@@ -206,7 +203,7 @@ def _replace_locals(node, doc_path):
         if not output:
             return new_value  # OPTIMIZATION FOR CASE WHEN node IS {}
         else:
-            return unwrap(set_default(output, new_value))
+            return from_data(set_default(output, new_value))
 
     elif is_list(node):
         candidate = [_replace_locals(n, [n] + doc_path) for n in node]
