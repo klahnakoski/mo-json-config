@@ -30,7 +30,7 @@ class TestRef(FuzzyTestCase):
         stack = get_stacktrace(0)
         this_file = stack[0]["file"]
         self.resources = (
-            "file:///" + File.new_instance(this_file, "../resources").abspath
+            "file://" + (File(this_file) / "../resources").abspath
         )
 
     def test_doc1(self):

@@ -1,5 +1,9 @@
 # More JSON Configuration!
 
+[![PyPI Latest Release](https://img.shields.io/pypi/v/mo-json-config.svg)](https://pypi.org/project/mo-json-config/)
+[![Build Status](https://app.travis-ci.com/klahnakoski/mo-json-config.svg?branch=master)](https://travis-ci.com/github/klahnakoski/mo-json-config)
+[![Coverage Status](https://coveralls.io/repos/github/klahnakoski/mo-json-config/badge.svg?branch=master)](https://coveralls.io/github/klahnakoski/mo-json-config?branch=master)
+
 A JSON template format intended for configuration files.
 
 ## Motivation
