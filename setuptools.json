@@ -13,14 +13,18 @@
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
     "extras_require": {"tests": ["mo-testing", "keyring"]},
     "install_requires": [
-                        "hjson",  "mo-dots==9.173.22126", "mo-files==4.181.22128",
-         "mo-future==6.2.21303",  "mo-json==6.173.22126",  "mo-logs==7.173.22126",
+                        "hjson",  "mo-dots==9.213.22307", "mo-files==5.227.22310",
+         "mo-future==6.2.21303",  "mo-json==6.220.22308",  "mo-logs==7.217.22307",
                      "requests"
     ],
     "license": "MPL 2.0",
     "long_description": {
         "$concat": [
             "# More JSON Configuration!",
+            "",
+            "[![PyPI Latest Release](https://img.shields.io/pypi/v/mo-json-config.svg)](https://pypi.org/project/mo-json-config/)",
+            "[![Build Status](https://app.travis-ci.com/klahnakoski/mo-json-config.svg?branch=master)](https://travis-ci.com/github/klahnakoski/mo-json-config)",
+            "[![Coverage Status](https://coveralls.io/repos/github/klahnakoski/mo-json-config/badge.svg?branch=master)](https://coveralls.io/github/klahnakoski/mo-json-config?branch=master)",
             "",
             "A JSON template format intended for configuration files.",
             "",
@@ -363,5 +367,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "3.181.22128"
+    "version": "3.228.22310"
 }
