@@ -11,6 +11,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 import os
+import re
 
 from mo_dots import (
     is_data,
@@ -23,22 +24,24 @@ from mo_dots import (
     get_attr,
     listwrap,
     unwraplist,
-    dict_to_data,
+    dict_to_data, Data, join_field,
 )
 from mo_files import File
 from mo_files.url import URL
 from mo_future import is_text
 from mo_future import text
 from mo_json import json2value
-from mo_json_config.convert import ini2value
 from mo_logs import Except, Log
+
+from mo_json_config.configuration import Configuration
+from mo_json_config.convert import ini2value
 
 DEBUG = False
 
 
 def get_file(file):
     file = File(file)
-    return get("file://" + file.abspath)
+    return get("file://" + file.abs_path)
 
 
 def get(url):
@@ -314,6 +317,35 @@ def _get_keyring(ref, url):
     return new_value
 
 
+def _get_ssm(ref, url):
+    try:
+        import boto3
+    except Exception:
+        Log.error("Missing boto3: `pip install boto3` to use this feature")
+    ssm = boto3.client('ssm', region_name='us-east-1')
+    output = Data()
+    result = ssm.describe_parameters(MaxResults=10)
+    prefix = re.compile("^"+re.escape(ref.path.rstrip("/"))+"/|$")
+    while True:
+        for param in result['Parameters']:
+            name = param['Name']
+            found = prefix.match(name)
+            if not found:
+                continue
+            tail = join_field(name[found.regs[0][1]:].split("/"))
+            # if param['Type']=="String":
+            #     detail
+            detail = ssm.get_parameter(Name=name, WithDecryption=True)
+            output[tail] = detail['Parameter']['Value']
+
+        next_token = result.get('NextToken')
+        if not next_token:
+            break
+        result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)
+
+    return output
+
+
 def _get_param(ref, url):
     # GET PARAMETERS FROM url
     param = url.query
@@ -328,4 +360,8 @@ scheme_loaders = {
     "env": _get_env,
     "param": _get_param,
     "keyring": _get_keyring,
+    "ssm": _get_ssm,
 }
+
+
+configuration = Configuration({})
