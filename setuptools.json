@@ -11,10 +11,10 @@
         "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
     ],
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
-    "extras_require": {"tests": ["mo-testing", "keyring", "boto3", "moto"]},
+    "extras_require": {"tests": ["mo-testing", "keyring", "boto3", "moto", "pyyaml"]},
     "install_requires": [
-                         "hjson",   "mo-dots==9.300.22349",  "mo-files==6.329.23004",
-        "mo-future==7.298.22349",   "mo-json==6.329.23004",   "mo-logs==7.329.23004",
+                         "hjson",   "mo-dots==9.300.22349",  "mo-files==6.330.23004",
+        "mo-future==7.298.22349",   "mo-json==6.330.23004",   "mo-logs==7.330.23004",
                       "requests"
     ],
     "license": "MPL 2.0",
@@ -384,5 +384,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "3.329.23004"
+    "version": "3.330.23004"
 }
