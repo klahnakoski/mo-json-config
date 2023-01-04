@@ -11,10 +11,10 @@
         "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
     ],
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
-    "extras_require": {"tests": ["mo-testing", "keyring"]},
+    "extras_require": {"tests": ["mo-testing", "keyring", "boto3", "moto"]},
     "install_requires": [
-                         "hjson",   "mo-dots==9.251.22317",  "mo-files==5.252.22317",
-        "mo-future==6.230.22310",   "mo-json==6.252.22317",   "mo-logs==7.252.22317",
+                         "hjson",   "mo-dots==9.300.22349",  "mo-files==6.329.23004",
+        "mo-future==7.298.22349",   "mo-json==6.329.23004",   "mo-logs==7.329.23004",
                       "requests"
     ],
     "license": "MPL 2.0",
@@ -30,7 +30,7 @@
             "",
             "## Motivation",
             "",
-            "This module has superficial similarity to the [JSON Reference Draft](https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-03), which seems inspired by the committee-driven XPath specification, and as a result, made some poor design choices. Here are the improvements this module makes:",
+            "This module reads JSON files and expands references found within. It is much like the IETF's  [JSON Reference](https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-03) specification, but with the following differences:",
             "",
             "1. This module uses the dot (`.`) as a path separator in the URL fragment. For example, an absolute reference looks like `{\"$ref\": \"#message.type.name\"}`, and a relative reference looks like `{\"$ref\": \"#..type.name\"}`.   This syntax better matches that used by Javascript.",
             "2. The properties found in a `$ref` object are not ignored. Rather, they are to *override* the referenced object properties. This allows you to reference a default document, and replace the particular properties as needed. *more below*",
@@ -46,6 +46,27 @@
             "",
             "config = mo_json_config.get(\"file://my_config.json\")",
             "```",
+            "",
+            "You may use the global `configuration` object for case-insensitive lookup:",
+            "",
+            "",
+            "```python",
+            "from mo_json_config import configuration",
+            "",
+            "# use |= operator to add more configuration",
+            "configuration |= {\"some\":{\"deep\":\"value\"}}",
+            "",
+            "assert configuration.someDeep == \"value\"",
+            "",
+            "```",
+            "",
+            "",
+            "",
+            "",
+            "## Schemes",
+            "",
+            "There are a number of configuration sources available, and you can access them via \"scheme\": ",
+            "",
             "",
             "### Environment Variables",
             "",
@@ -355,10 +376,6 @@
             "",
             "Please see [`expand_template()` in the `strings` module](https://github.com/klahnakoski/mo-logs/blob/dev/mo_logs/strings.py) for more on the parameter replacement, and transformations available",
             "",
-            "",
-            "---",
-            "",
-            "also see [http://tools.ietf.org/id/draft-pbryan-zyp-json-ref-03.html](http://tools.ietf.org/id/draft-pbryan-zyp-json-ref-03.html)",
             ""
         ],
         "separator": "\n"
@@ -367,5 +384,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "3.259.22317"
+    "version": "3.329.23004"
 }
