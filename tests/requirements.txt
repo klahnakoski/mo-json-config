@@ -2,3 +2,4 @@ mo-testing
 keyring
 boto3
 moto
+pyyaml
