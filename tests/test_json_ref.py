@@ -15,11 +15,13 @@ from __future__ import unicode_literals
 import os
 from unittest import skipIf
 
+import boto3
 import keyring
 from mo_dots import Data
 from mo_files import File
 from mo_logs.exceptions import get_stacktrace
 from mo_testing.fuzzytestcase import FuzzyTestCase
+from moto import mock_ssm
 
 import mo_json_config
 from mo_json_config import URL
@@ -33,7 +35,7 @@ class TestRef(FuzzyTestCase):
         stack = get_stacktrace(0)
         this_file = stack[0]["file"]
         self.resources = (
-            "file://" + (File(this_file) / "../resources").abspath
+            "file://" + (File(this_file) / "../resources").abs_path
         )
 
     def test_doc1(self):
@@ -207,3 +209,39 @@ class TestRef(FuzzyTestCase):
         doc_url = "http://example.com/"
         result = mo_json_config.expand(doc, doc_url)
         self.assertEqual(result, {"a": "password"})
+
+    def test_ssm(self):
+        with mock_ssm():
+            ssm = boto3.client('ssm', region_name='us-east-1')
+            ssm.put_parameter(Name='/services/graylog/host', Value='localhost', Type='String')
+            ssm.put_parameter(Name='/services/graylog/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog1/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog2/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog3/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog4/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog5/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog6/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog7/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog8/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog9/port', Value='1220', Type='String')
+            ssm.put_parameter(Name='/services/graylog0/port', Value='1220', Type='String')
+
+            doc = {"services": {"$ref": "ssm:///services"}}
+            result = mo_json_config.expand(doc, "http://example.com/")
+            self.assertEqual(result, {"services": {"graylog": {"host": "localhost", "port": "1220"}}})
+
+    def test_config(self):
+        configuration = mo_json_config.configuration
+        configuration |= {
+            "thisIsATest": "A",
+            "another.test": "B",
+            "also-a_test999": "C",
+            "BIG_WORDS": "D",
+        }
+
+        self.assertEqual(configuration.this_is.a.test, "A")
+        self.assertEqual(configuration['anotherTest'], "B")
+        self.assertEqual(configuration['ALSO_A_TEST999'], "C")
+        self.assertEqual(configuration['bigWords'], "D")
+
+

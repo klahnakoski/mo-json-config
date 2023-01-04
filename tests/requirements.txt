@@ -1,2 +1,3 @@
 mo-testing
 keyring
+boto3
