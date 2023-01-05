@@ -8,8 +8,6 @@
 # Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import absolute_import, division, unicode_literals
-
 import os
 import re
 
@@ -318,31 +316,33 @@ def _get_keyring(ref, url):
 
 
 def _get_ssm(ref, url):
+    output = Data()
     try:
         import boto3
     except Exception:
         Log.error("Missing boto3: `pip install boto3` to use this feature")
-    ssm = boto3.client('ssm', region_name='us-east-1')
-    output = Data()
-    result = ssm.describe_parameters(MaxResults=10)
-    prefix = re.compile("^"+re.escape(ref.path.rstrip("/"))+"/|$")
-    while True:
-        for param in result['Parameters']:
-            name = param['Name']
-            found = prefix.match(name)
-            if not found:
-                continue
-            tail = join_field(name[found.regs[0][1]:].split("/"))
-            # if param['Type']=="String":
-            #     detail
-            detail = ssm.get_parameter(Name=name, WithDecryption=True)
-            output[tail] = detail['Parameter']['Value']
+    try:
+        ssm = boto3.client('ssm', region_name='us-east-1')
+        result = ssm.describe_parameters(MaxResults=10)
+        prefix = re.compile("^"+re.escape(ref.path.rstrip("/"))+"/|$")
+        while True:
+            for param in result['Parameters']:
+                name = param['Name']
+                found = prefix.match(name)
+                if not found:
+                    continue
+                tail = join_field(name[found.regs[0][1]:].split("/"))
+                # if param['Type']=="String":
+                #     detail
+                detail = ssm.get_parameter(Name=name, WithDecryption=True)
+                output[tail] = detail['Parameter']['Value']
 
-        next_token = result.get('NextToken')
-        if not next_token:
-            break
-        result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)
-
+            next_token = result.get('NextToken')
+            if not next_token:
+                break
+            result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)
+    except Exception as cause:
+        Log.error("Could not get ssm parameters", cause=cause)
     return output
 
 

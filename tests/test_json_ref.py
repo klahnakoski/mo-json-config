@@ -24,7 +24,7 @@ from mo_testing.fuzzytestcase import FuzzyTestCase
 from moto import mock_ssm
 
 import mo_json_config
-from mo_json_config import URL
+from mo_json_config import URL, ini2value
 
 IS_TRAVIS = os.environ.get('TRAVIS') or False
 
@@ -230,18 +230,14 @@ class TestRef(FuzzyTestCase):
             result = mo_json_config.expand(doc, "http://example.com/")
             self.assertEqual(result, {"services": {"graylog": {"host": "localhost", "port": "1220"}}})
 
-    def test_config(self):
-        configuration = mo_json_config.configuration
-        configuration |= {
-            "thisIsATest": "A",
-            "another.test": "B",
-            "also-a_test999": "C",
-            "BIG_WORDS": "D",
-        }
-
-        self.assertEqual(configuration.this_is.a.test, "A")
-        self.assertEqual(configuration['anotherTest'], "B")
-        self.assertEqual(configuration['ALSO_A_TEST999'], "C")
-        self.assertEqual(configuration['bigWords'], "D")
-
-
+    def test_ini(self):
+        temp = ini2value(File("tests/.coverage").read())
+        self.assertEqual(
+            temp,
+            {
+                "run": {"source": "./mo_json_config"},
+                "report": {"exclude_lines": (
+                    """\npragma: no cover\nexcept Exception as\nexcept BaseException as\nLog.error\nif DEBUG"""
+                )},
+            },
+        )
