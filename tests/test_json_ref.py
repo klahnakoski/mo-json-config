@@ -235,6 +235,10 @@ class TestRef(FuzzyTestCase):
             with self.assertRaises("No ssm parameters found at /services"):
                 mo_json_config.get("ssm:///services")
 
+    def test_ssm_unreachable(self):
+        result = mo_json_config.get("ssm:///services/tools")
+        self.assertEqual(len(result), 0)
+
     def test_ini(self):
         temp = ini2value(File("tests/.coverage").read())
         self.assertEqual(
