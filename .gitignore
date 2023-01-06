@@ -10,3 +10,4 @@ dist
 *.tab
 /vendor
 /.coverage
+setup.py
