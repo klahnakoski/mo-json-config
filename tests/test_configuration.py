@@ -1,5 +1,4 @@
 import os
-from unittest import TestCase
 
 from mo_future import first
 from mo_testing.fuzzytestcase import FuzzyTestCase
@@ -37,7 +36,7 @@ class TestConfiguration(FuzzyTestCase):
         with self.assertRaises("another"):
             b = a.not_exists
 
-        add = configuration.this | {"is":{"not": {"a": {"test": 42}}}}
+        add = configuration.this | {"is": {"not": {"a": {"test": 42}}}}
         self.assertEqual(add.is_not.a.test, 42)
 
     def test_env(self):

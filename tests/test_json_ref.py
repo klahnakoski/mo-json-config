@@ -230,6 +230,11 @@ class TestRef(FuzzyTestCase):
             result = mo_json_config.expand(doc, "http://example.com/")
             self.assertEqual(result, {"services": {"graylog": {"host": "localhost", "port": "1220"}}})
 
+    def test_ssm_missing(self):
+        with mock_ssm():
+            with self.assertRaises("No ssm parameters found at /services"):
+                mo_json_config.get("ssm:///services")
+
     def test_ini(self):
         temp = ini2value(File("tests/.coverage").read())
         self.assertEqual(
