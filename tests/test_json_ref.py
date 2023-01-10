@@ -211,8 +211,9 @@ class TestRef(FuzzyTestCase):
         self.assertEqual(result, {"a": "password"})
 
     def test_ssm(self):
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         with mock_ssm():
-            ssm = boto3.client('ssm', region_name='us-east-1')
+            ssm = boto3.client('ssm')
             ssm.put_parameter(Name='/services/graylog/host', Value='localhost', Type='String')
             ssm.put_parameter(Name='/services/graylog/port', Value='1220', Type='String')
             ssm.put_parameter(Name='/services/graylog1/port', Value='1220', Type='String')
@@ -240,13 +241,13 @@ class TestRef(FuzzyTestCase):
         self.assertEqual(len(result), 0)
 
     def test_ini(self):
-        temp = ini2value(File("tests/.coverage").read())
+        temp = ini2value(File("tests/.coveragerc").read())
         self.assertEqual(
             temp,
             {
                 "run": {"source": "./mo_json_config"},
                 "report": {"exclude_lines": (
-                    """\npragma: no cover\nexcept Exception as\nexcept BaseException as\nLog.error\nif DEBUG"""
+                    """\npragma: no cover\nexcept Exception as\nexcept BaseException as\nLog.error\nlogger.error\nif DEBUG"""
                 )},
             },
         )
