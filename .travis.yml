@@ -12,7 +12,7 @@ jobs:
       dist: jammy  # Ubuntu 22.04
       python: "3.10"
       before_install:
-        - sudo apt install python3-setuptools
+        - pip3 install --upgrade setuptools
 env:
   global:
   - PYTHONPATH=.
