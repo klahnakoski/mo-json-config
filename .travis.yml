@@ -11,12 +11,11 @@ jobs:
     - name: "Python 3.10"
       dist: jammy  # Ubuntu 22.04
       python: "3.10"
-      before_install:
-        - sudo apt install python3-setuptools
 env:
   global:
   - PYTHONPATH=.
 install:
+- pip install setuptools
 - pip install coverage==6.2
 - pip install coveralls
 - pip install -r tests/requirements.txt
