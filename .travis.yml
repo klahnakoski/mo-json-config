@@ -9,8 +9,10 @@ jobs:
     - name: "Python 3.9"
       python: "3.9"
     - name: "Python 3.10"
-      dist: jammy
+      dist: jammy  # Ubuntu 22.04
       python: "3.10"
+      before_install:
+        - sudo apt install python3-setuptools
 env:
   global:
   - PYTHONPATH=.
