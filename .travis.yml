@@ -4,6 +4,7 @@ python:
 - 3.7.8
 - 3.8
 - 3.9
+- 3.1
 env:
   global:
   - PYTHONPATH=.
@@ -16,5 +17,5 @@ install:
 script:
 - python -u -m unittest discover -v tests
 after_success:
-- coverage run --rcfile=tests/.coverage -m unittest discover -v tests
+- coverage run --rcfile=tests/.coveragerc -m unittest discover -v tests
 - coveralls

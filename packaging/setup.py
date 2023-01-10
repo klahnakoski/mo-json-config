@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     author='Kyle Lahnakoski',
     author_email='kyle@lahnakoski.com',
-    classifiers=["Development Status :: 4 - Beta","Topic :: Software Development :: Libraries","Topic :: Software Development :: Libraries :: Python Modules","Programming Language :: Python :: 3.7","Programming Language :: Python :: 3.8","Programming Language :: Python :: 3.9","License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"],
+    classifiers=["Development Status :: 4 - Beta","Topic :: Software Development :: Libraries","Topic :: Software Development :: Libraries :: Python Modules","Programming Language :: Python :: 3.7","Programming Language :: Python :: 3.8","Programming Language :: Python :: 3.9","Programming Language :: Python :: 3.10","License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"],
     description='More JSON Configuration! JSON configuration files with `$ref` and template overlays',
     extras_require={"tests":["mo-testing","keyring","boto3","moto","pyyaml"]},
     install_requires=["hjson","mo-dots==9.341.23006","mo-files==6.341.23006","mo-future==7.340.23006","mo-json==6.341.23006","mo-logs==7.341.23006","requests"],
@@ -15,5 +15,5 @@ setup(
     name='mo-json-config',
     packages=["mo_json_config"],
     url='https://github.com/klahnakoski/mo-json-config',
-    version='3.341.23006'
+    version='3.343.23010'
 )

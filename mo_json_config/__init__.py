@@ -322,7 +322,7 @@ def _get_ssm(ref, url):
     except Exception:
         logger.error("Missing boto3: `pip install boto3` to use ssm://")
     try:
-        ssm = boto3.client('ssm', region_name='us-east-1')
+        ssm = boto3.client('ssm')
         result = ssm.describe_parameters(MaxResults=10)
         prefix = re.compile("^"+re.escape(ref.path.rstrip("/"))+"/|$")
         while True:
@@ -341,6 +341,8 @@ def _get_ssm(ref, url):
             result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)
     except Exception as cause:
         logger.warning("Could not get ssm parameters", cause=cause)
+        return output
+
     if len(output) == 0:
         logger.error("No ssm parameters found at {{path}}", path=ref.path)
     return output
