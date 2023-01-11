@@ -15,7 +15,8 @@ env:
   global:
   - PYTHONPATH=.
 install:
-- pip install --upgrade setuptools wheel
+- pip install wheel
+- pip install --upgrade setuptools
 - pip install coverage
 - pip install coveralls
 - pip install -r tests/requirements.txt
