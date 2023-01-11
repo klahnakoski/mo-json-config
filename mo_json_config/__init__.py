@@ -22,7 +22,9 @@ from mo_dots import (
     get_attr,
     listwrap,
     unwraplist,
-    dict_to_data, Data, join_field,
+    dict_to_data,
+    Data,
+    join_field,
 )
 from mo_files import File
 from mo_files.url import URL
@@ -268,7 +270,9 @@ def get_http(ref, url):
     import requests
 
     params = url.query
-    new_value = json2value(requests.get(str(ref)).json(), params=params, flexible=True, leaves=True)
+    new_value = json2value(
+        requests.get(str(ref)).json(), params=params, flexible=True, leaves=True
+    )
     return new_value
 
 
@@ -277,7 +281,9 @@ def _get_env(ref, url):
     ref = ref.host
     raw_value = os.environ.get(ref)
     if not raw_value:
-        logger.error("expecting environment variable with name {{env_var}}", env_var=ref)
+        logger.error(
+            "expecting environment variable with name {{env_var}}", env_var=ref
+        )
 
     try:
         new_value = json2value(raw_value)
@@ -322,20 +328,20 @@ def _get_ssm(ref, url):
     except Exception:
         logger.error("Missing boto3: `pip install boto3` to use ssm://")
     try:
-        ssm = boto3.client('ssm')
+        ssm = boto3.client("ssm")
         result = ssm.describe_parameters(MaxResults=10)
-        prefix = re.compile("^"+re.escape(ref.path.rstrip("/"))+"/|$")
+        prefix = re.compile("^" + re.escape(ref.path.rstrip("/")) + "/|$")
         while True:
-            for param in result['Parameters']:
-                name = param['Name']
+            for param in result["Parameters"]:
+                name = param["Name"]
                 found = prefix.match(name)
                 if not found:
                     continue
-                tail = join_field(name[found.regs[0][1]:].split("/"))
+                tail = join_field(name[found.regs[0][1] :].split("/"))
                 detail = ssm.get_parameter(Name=name, WithDecryption=True)
-                output[tail] = detail['Parameter']['Value']
+                output[tail] = detail["Parameter"]["Value"]
 
-            next_token = result.get('NextToken')
+            next_token = result.get("NextToken")
             if not next_token:
                 break
             result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)

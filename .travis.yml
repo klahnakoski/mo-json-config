@@ -1,21 +1,3 @@
-language: python
-cache: pip
-python:
-- 3.7.8
-- 3.8
-- 3.9
-- "3.10"
-env:
-  global:
-  - PYTHONPATH=.
-install:
-- pip install coverage==6.2
-- pip install coveralls
-- pip install -r tests/requirements.txt
-- cp packaging/setup.py .
-- pip install .
-script:
-- python -u -m unittest discover -v tests
-after_success:
-- coverage run --rcfile=tests/.coveragerc -m unittest discover -v tests
-- coveralls
+!!python/object/new:mo_dots.datas.Data
+state: &id001 !!python/object/new:mo_dots.nones.NullType
+  state: *id001

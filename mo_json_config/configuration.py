@@ -16,12 +16,13 @@ from mo_logs.strings import wordify
 
 
 class Configuration(Mapping):
-
     def __init__(self, config, path="."):
         if not isinstance(config, Mapping) and not is_data(config):
             logger.error("Expecting data, not {{config}}", config=config)
         self._path = path
-        self._lookup = leaves_to_data({join_field(wordify(path)): value for path, value in Data(**config).leaves()})
+        self._lookup = leaves_to_data({
+            join_field(wordify(path)): value for path, value in Data(**config).leaves()
+        })
 
     def __iter__(self):
         return (k for k, _ in self._lookup.leaves())
@@ -52,7 +53,11 @@ class Configuration(Mapping):
         clean_path = join_field(wordify(item))
         value = self._lookup[clean_path]
         if value == None:
-            logger.error("Expecting configuration {{path|quote}}", path=concat_field(self._path, clean_path), stack_depth=1)
+            logger.error(
+                "Expecting configuration {{path|quote}}",
+                path=concat_field(self._path, clean_path),
+                stack_depth=1,
+            )
         if is_data(value):
             return Configuration(value, concat_field(self._path, clean_path))
         return value
