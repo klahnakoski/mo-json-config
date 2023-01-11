@@ -1,22 +1,21 @@
 language: python
 cache: pip
+python:
+- 3.7.8
+- 3.8
+- 3.9
 jobs:
   include:
-    - name: "Python 3.7.8"
-      python: 3.7.8
-    - name: "Python 3.8"
-      python: "3.8"
-    - name: "Python 3.9"
-      python: "3.9"
     - name: "Python 3.10"
       dist: jammy  # Ubuntu 22.04
       python: "3.10"
+      before_install:
+       - pip install wheel==0.37.1
+       - pip install setuptools==45.2.0
 env:
   global:
   - PYTHONPATH=.
 install:
-- pip install wheel==0.37.1
-- pip install setuptools==45.2.0
 - pip install coverage
 - pip install coveralls
 - pip install -r tests/requirements.txt
