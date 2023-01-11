@@ -1,3 +1,28 @@
-!!python/object/new:mo_dots.datas.Data
-state: &id001 !!python/object/new:mo_dots.nones.NullType
-  state: *id001
+language: python
+cache: pip
+python:
+- 3.7.8
+- '3.8'
+- '3.9'
+jobs:
+  include:
+  - name: Python 3.10
+    dist: jammy
+    python: '3.10'
+    before_install:
+    - pip install wheel==0.37.1
+    - pip install setuptools==45.2.0
+env:
+  global:
+  - PYTHONPATH=.
+install:
+- pip install coverage
+- pip install coveralls
+- pip install -r tests/requirements.txt
+- cp packaging/setup.py .
+- pip install .
+script:
+- python -u -m unittest discover -v tests
+after_success:
+- coverage run --rcfile=tests/.coveragerc -m unittest discover -v tests
+- coveralls
