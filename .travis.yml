@@ -16,7 +16,7 @@ env:
   - PYTHONPATH=.
 install:
 - pip install wheel==0.37.1
-- pip install --upgrade setuptools
+- pip install setuptools==45.2.0
 - pip install coverage
 - pip install coveralls
 - pip install -r tests/requirements.txt
