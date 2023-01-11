@@ -17,7 +17,7 @@ This module reads JSON files and expands references found within. It is much lik
 
 ## Quick guide
 
-Load your configuration file with:
+Load your configuration file:
 
 ```python
 import mo_json_config
@@ -43,7 +43,7 @@ assert configuration.someDeep == "value"
 
 ## Schemes
 
-There are a number of configuration sources available, and you can access them via "scheme": 
+This module can load configuration from a number of sources, and you can access them via URI scheme.  Beyond the common `file` and `http` schemes, there are
 
 
 ### Environment Variables
@@ -79,7 +79,18 @@ The host is in `<username>@<server_name>` format; invoking `keyring.get_password
 > Be sure to `pip install keyring` to use keyring
 
 
-## Detailed Usage
+### AWS SSM
+
+The `ssm` scheme can be used to read from the AWS parameter store.  Here is an example that will read all parameters that start with "/configuration" and adds them to the global configuration object:
+
+```python
+from mo_json_config import get, configuration
+
+configuration |= get("ssm:///configuration")
+```
+  
+
+## Using references in config files
 
 The `$ref` property is special. Its value is interpreted as a URL pointing to more JSON
 
@@ -247,7 +258,7 @@ the dot-delimited path into the document:
 
 ### Parameters Reference
 
-You can reference the variables found in `$ref` URL by using the `param` scheme. For example, the following  JSON document demands that it be provided with a `password` parameter:  
+You can reference the variables found in `$ref` URL by using the `param` scheme. For example, the following JSON document demands that it be provided with a `password` parameter:  
 
     { # LOCATED AT http://example.com/machine_config.json
         "host": "mail.example.com",
@@ -255,9 +266,9 @@ You can reference the variables found in `$ref` URL by using the `param` scheme.
         "password": {"$ref": "param:///password"}
     }
 
-**The `param` scheme does not conform to the URL spec: It only accepts dot-delimited paths.**
+> The `param` scheme only accepts dot-delimited paths.
 
-This parametric JSON can be expanded with a $ref
+The above parametric JSON can be expanded with a $ref
 
 	{"config": {
 		"$ref": "http://example.com/machine_config.json?password=pass123"
