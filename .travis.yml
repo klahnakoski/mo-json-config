@@ -15,7 +15,7 @@ env:
   global:
   - PYTHONPATH=.
 install:
-- pip install wheel
+- pip install wheel==0.37.1
 - pip install --upgrade setuptools
 - pip install coverage
 - pip install coveralls
