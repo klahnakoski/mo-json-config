@@ -10,6 +10,7 @@ jobs:
       dist: jammy  # Ubuntu 22.04
       python: "3.10"
       before_install:
+       # https://discourse.charmhub.io/t/cannot-install-dependencies-modulenotfounderror-no-module-named-setuptools-command-build/7374
        - pip install wheel==0.37.1
        - pip install setuptools==45.2.0
 env:
