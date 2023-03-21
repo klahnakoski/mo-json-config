@@ -321,8 +321,16 @@ def _get_keyring(ref, url):
     return new_value
 
 
+ssm_has_failed = False
+
+
 def _get_ssm(ref, url):
+    global ssm_has_failed
+
     output = Data()
+
+    if ssm_has_failed:
+        return output
     try:
         import boto3
     except Exception:
@@ -346,6 +354,7 @@ def _get_ssm(ref, url):
                 break
             result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)
     except Exception as cause:
+        ssm_has_failed = True
         logger.warning("Could not get ssm parameters", cause=cause)
         return output
 
