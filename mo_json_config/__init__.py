@@ -59,14 +59,12 @@ def get(url):
         else:
             base = URL("file://" + os.getcwd().rstrip("/") + "/.")
 
-    phase1 = _replace_ref(
-        dict_to_data({"$ref": url}), base
-    )  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    phase1 = _replace_ref(dict_to_data({"$ref": url}), base)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     try:
         phase2 = _replace_locals(phase1, [phase1])
         return to_data(phase2)
-    except Exception as e:
-        logger.error("problem replacing locals in\n{{phase1}}", phase1=phase1, cause=e)
+    except Exception as cause:
+        logger.error("problem replacing locals in\n{{phase1}}", phase1=phase1, cause=cause)
 
 
 def expand(doc, doc_url="param://", params=None):
@@ -136,9 +134,7 @@ def _replace_ref(node, url):
             if ref.fragment:
                 new_value = get_attr(new_value, ref.fragment)
 
-            DEBUG and logger.note(
-                "Replace {{ref}} with {{new_value}}", ref=ref, new_value=new_value
-            )
+            DEBUG and logger.note("Replace {{ref}} with {{new_value}}", ref=ref, new_value=new_value)
 
             if not output:
                 output = new_value
@@ -190,8 +186,7 @@ def _replace_locals(node, doc_path):
                 if p != ".":
                     if i > len(doc_path):
                         logger.error(
-                            "{{frag|quote}} reaches up past the root document",
-                            frag=frag,
+                            "{{frag|quote}} reaches up past the root document", frag=frag,
                         )
                     new_value = get_attr(doc_path[i - 1], frag[i::])
                     break
@@ -270,9 +265,7 @@ def get_http(ref, url):
     import requests
 
     params = url.query
-    new_value = json2value(
-        requests.get(str(ref)).json(), params=params, flexible=True, leaves=True
-    )
+    new_value = json2value(requests.get(str(ref)).json(), params=params, flexible=True, leaves=True)
     return new_value
 
 
@@ -281,9 +274,7 @@ def _get_env(ref, url):
     ref = ref.host
     raw_value = os.environ.get(ref)
     if not raw_value:
-        logger.error(
-            "expecting environment variable with name {{env_var}}", env_var=ref
-        )
+        logger.error("expecting environment variable with name {{env_var}}", env_var=ref)
 
     try:
         new_value = json2value(raw_value)
@@ -308,8 +299,7 @@ def _get_keyring(ref, url):
     raw_value = keyring.get_password(service_name, username)
     if not raw_value:
         logger.error(
-            "expecting password in the keyring for service_name={{service_name}} and"
-            " username={{username}}",
+            "expecting password in the keyring for service_name={{service_name}} and username={{username}}",
             service_name=service_name,
             username=username,
         )
