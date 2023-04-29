@@ -30,6 +30,20 @@ class Configuration(Mapping):
     def __len__(self):
         return len(self._lookup)
 
+    def prepend(self, other):
+        """
+        RECURSIVE COALESCE OF PROPERTIES, BUT WITH other TAKING HIGH PRIORITY
+        """
+        self._lookup = Configuration(other)._lookup | self._lookup
+        return self
+
+    def append(self, other):
+        """
+        RECURSIVE COALESCE OF PROPERTIES
+        """
+        self._lookup |= Configuration(other)._lookup
+        return self
+
     def __iadd__(self, other):
         """
         RECURSIVE ACCUMULATION OF PROPERTIES

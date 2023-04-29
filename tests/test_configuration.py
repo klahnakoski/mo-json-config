@@ -39,6 +39,18 @@ class TestConfiguration(FuzzyTestCase):
         add = configuration.this | {"is": {"not": {"a": {"test": 42}}}}
         self.assertEqual(add.is_not.a.test, 42)
 
+    def test_config_prepend(self):
+        configuration = mo_json_config.configuration
+        configuration.prepend({
+            "thisIsATest": "A",
+            "another.test": "B",
+            "also-a_test999": "C",
+            "BIG_WORDS": "D",
+        })
+        configuration.prepend({"thisIs_a_test": "B"})
+
+        self.assertEqual(configuration.this.is_a.test, "B")
+
     def test_env(self):
         c = Configuration({})
         c |= os.environ
