@@ -13,8 +13,8 @@
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
     "extras_require": {"tests": ["mo-testing", "keyring", "boto3", "moto", "pyyaml"]},
     "install_requires": [
-                         "hjson",   "mo-dots==9.408.23161",  "mo-files==6.413.23168",
-        "mo-future==7.401.23144",   "mo-json==6.413.23168",   "mo-logs==8.412.23165",
+                         "hjson",   "mo-dots==9.417.23168",  "mo-files==6.420.23168",
+        "mo-future==7.416.23168",   "mo-json==6.420.23168",   "mo-logs==8.417.23168",
                       "requests"
     ],
     "license": "MPL 2.0",
@@ -395,5 +395,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "4.413.23168"
+    "version": "4.420.23168"
 }
