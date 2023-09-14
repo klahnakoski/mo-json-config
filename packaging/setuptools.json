@@ -8,13 +8,14 @@
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+        "Programming Language :: Python :: 3.11"
     ],
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
     "extras_require": {"tests": ["mo-testing", "keyring", "boto3", "moto", "pyyaml"]},
     "install_requires": [
-                         "hjson",   "mo-dots==9.417.23168",  "mo-files==6.426.23208",
-        "mo-future==7.416.23168",   "mo-json==6.425.23207",   "mo-logs==8.425.23207",
+                         "hjson",   "mo-dots==9.430.23234",  "mo-files==6.439.23257",
+        "mo-future==7.428.23214",   "mo-json==6.438.23256",   "mo-logs==8.438.23256",
                       "requests"
     ],
     "license": "MPL 2.0",
@@ -395,5 +396,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "4.426.23208"
+    "version": "4.439.23257"
 }
