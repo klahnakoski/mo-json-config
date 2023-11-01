@@ -323,6 +323,7 @@ def _get_ssm(ref, url):
         return output
     try:
         import boto3
+        from moto.ssm.exceptions import AccessDeniedException
     except Exception:
         logger.error("Missing boto3: `pip install boto3` to use ssm://")
     try:
@@ -343,6 +344,8 @@ def _get_ssm(ref, url):
             if not next_token:
                 break
             result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)
+    except AccessDeniedException as cause:
+        return LazySsm(ssm, ref.path.rstrip("/"))
     except Exception as cause:
         ssm_has_failed = True
         logger.warning("Could not get ssm parameters", cause=cause)
