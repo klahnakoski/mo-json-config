@@ -32,7 +32,6 @@ from mo_future import is_text
 from mo_future import text
 from mo_json import json2value
 from mo_logs import Except, logger
-from moto.ssm.exceptions import AccessDeniedException
 
 from mo_json_config.configuration import Configuration
 from mo_json_config.convert import ini2value
@@ -324,6 +323,7 @@ def _get_ssm(ref, url):
         return output
     try:
         import boto3
+        from moto.ssm.exceptions import AccessDeniedException
     except Exception:
         logger.error("Missing boto3: `pip install boto3` to use ssm://")
     try:
