@@ -11,7 +11,6 @@
 import os
 import re
 
-from boto3.docs import client
 from mo_dots import (
     is_data,
     is_list,
