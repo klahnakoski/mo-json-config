@@ -6,3 +6,4 @@ assert config.test_key == "test_value"
 
 configuration |= config
 assert configuration.test.key == "test_value"
+
