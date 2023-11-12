@@ -265,7 +265,7 @@ def get_http(ref, url):
     import requests
 
     params = url.query
-    new_value = json2value(requests.get(str(ref)).json(), params=params, flexible=True, leaves=True)
+    new_value = json2value(requests.get(str(ref)).text, params=params, flexible=True, leaves=True)
     return new_value
 
 
@@ -323,8 +323,7 @@ def _get_ssm(ref, url):
         return output
     try:
         import boto3
-        from moto.ssm.exceptions import AccessDeniedException
-    except Exception:
+    except Exception as cause:
         logger.error("Missing boto3: `pip install boto3` to use ssm://")
     try:
         ssm = boto3.client("ssm")
@@ -344,8 +343,6 @@ def _get_ssm(ref, url):
             if not next_token:
                 break
             result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)
-    except AccessDeniedException as cause:
-        return LazySsm(ssm, ref.path.rstrip("/"))
     except Exception as cause:
         ssm_has_failed = True
         logger.warning("Could not get ssm parameters", cause=cause)
