@@ -246,3 +246,15 @@ class TestRef(FuzzyTestCase):
                 )},
             },
         )
+
+    def test_ssm_value(self):
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        with mock_ssm():
+            ssm = boto3.client('ssm')
+            ssm.put_parameter(Name='/services/graylog/host', Value='localhost', Type='String')
+            ssm.put_parameter(Name='/services/graylog/port', Value='1220', Type='String')
+
+            doc = {"services": {"$ref": "ssm:///services/graylog/host"}}
+            result = mo_json_config.expand(doc, "http://example.com/")
+            self.assertEqual(result, {"services": "localhost"})
+
