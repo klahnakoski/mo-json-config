@@ -207,6 +207,7 @@ class TestRef(FuzzyTestCase):
 
     def test_ssm(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        mo_json_config.ssm_has_failed = False
         with mock_ssm():
             ssm = boto3.client('ssm')
             ssm.put_parameter(Name='/services/graylog/host', Value='localhost', Type='String')
@@ -227,11 +228,13 @@ class TestRef(FuzzyTestCase):
             self.assertEqual(result, {"services": {"graylog": {"host": "localhost", "port": "1220"}}})
 
     def test_ssm_missing(self):
+        mo_json_config.ssm_has_failed = False
         with mock_ssm():
             with self.assertRaises("No ssm parameters found at /services"):
                 mo_json_config.get("ssm:///services")
 
     def test_ssm_unreachable(self):
+        mo_json_config.ssm_has_failed = False
         result = mo_json_config.get("ssm:///services/tools")
         self.assertEqual(len(result), 0)
 
@@ -249,6 +252,7 @@ class TestRef(FuzzyTestCase):
 
     def test_ssm_value(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        mo_json_config.ssm_has_failed = False
         with mock_ssm():
             ssm = boto3.client('ssm')
             ssm.put_parameter(Name='/services/graylog/host', Value='localhost', Type='String')
