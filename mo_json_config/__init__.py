@@ -328,7 +328,7 @@ def _get_ssm(ref, url):
     try:
         ssm = boto3.client("ssm")
         result = ssm.describe_parameters(MaxResults=10)
-        prefix = re.compile("^" + re.escape(ref.path.rstrip("/")) + "/|$")
+        prefix = re.compile("^" + re.escape(ref.path.rstrip("/")) + "(?:/|$)")
         while True:
             for param in result["Parameters"]:
                 name = param["Name"]
@@ -336,6 +336,8 @@ def _get_ssm(ref, url):
                 if not found:
                     continue
                 tail = join_field(name[found.regs[0][1] :].split("/"))
+                if not tail:
+                    return ssm.get_parameter(Name=name, WithDecryption=True)["Parameter"]["Value"]
                 detail = ssm.get_parameter(Name=name, WithDecryption=True)
                 output[tail] = detail["Parameter"]["Value"]
 
