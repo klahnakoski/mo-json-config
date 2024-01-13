@@ -12,26 +12,67 @@ from unittest import skipIf
 
 import boto3
 import keyring
+from botocore.exceptions import ClientError
 from mo_dots import Data
 from mo_files import File
+from mo_future import get_function_name, decorate
 from mo_logs.exceptions import get_stacktrace
-from mo_testing.fuzzytestcase import FuzzyTestCase
+from mo_testing.fuzzytestcase import FuzzyTestCase, add_error_reporting
+from mo_threads import stop_main_thread
 from moto import mock_ssm
 
 import mo_json_config
 from mo_json_config import URL, ini2value
+from mo_json_config import ssm as _ssm
 
-IS_TRAVIS = os.environ.get('TRAVIS') or False
+IS_TRAVIS = os.environ.get("TRAVIS") or False
 
 
+def add_throttling_errors(func):
+    count = [0]
+    func_name = get_function_name(func)
+
+    @decorate(func)
+    def output(*args, **kwargs):
+        count[0] += 1
+        if count[0] < 3:
+            raise ClientError({"Error": {"Code": "ThrottlingException", "Message": "Rate limit exceeded"}}, func_name)
+        else:
+            return func(*args, **kwargs)
+
+    return output
+
+
+_boto_client = None
+
+
+class ThrottlingSsm:
+    def __init__(self, type):
+        self.ssm = _boto_client("ssm")
+
+    def put_parameter(self, Name, Value, Type):
+        return self.ssm.put_parameter(Name=Name, Value=Value, Type=Type)
+
+    @add_throttling_errors
+    def get_parameter(self, Name, WithDecryption):
+        return self.ssm.get_parameter(Name=Name, WithDecryption=WithDecryption)
+
+    @add_throttling_errors
+    def describe_parameters(self, MaxResults):
+        return self.ssm.describe_parameters(MaxResults=MaxResults)
+
+
+@add_error_reporting
 class TestRef(FuzzyTestCase):
     def __init__(self, *args, **kwargs):
         FuzzyTestCase.__init__(self, *args, **kwargs)
         stack = get_stacktrace(0)
         this_file = stack[0]["file"]
-        self.resources = (
-            "file://" + (File(this_file) / "../resources").abs_path
-        )
+        self.resources = "file://" + (File(this_file) / "../resources").abs_path
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_main_thread()
 
     def test_doc1(self):
         os.environ["test_variable"] = "abc"
@@ -45,8 +86,7 @@ class TestRef(FuzzyTestCase):
         self.assertEqual(doc.absolute_doc, "another value")
         self.assertEqual(doc.env_variable, "abc")
         self.assertEqual(
-            doc.relative_object_doc,
-            {"key": "new value", "another_key": "another value"},
+            doc.relative_object_doc, {"key": "new value", "another_key": "another value"},
         )
 
     def test_doc2(self):
@@ -54,12 +94,7 @@ class TestRef(FuzzyTestCase):
         doc = mo_json_config.get(self.resources + "/test_ref2.json")
 
         self.assertEqual(
-            doc,
-            {
-                "a": "some_value",
-                "test_key": "test_value",
-                "b": {"test_key": "test_value"},
-            },
+            doc, {"a": "some_value", "test_key": "test_value", "b": {"test_key": "test_value"},},
         )
 
     def test_empty_object_as_json_parameter(self):
@@ -72,27 +107,18 @@ class TestRef(FuzzyTestCase):
         url = URL(self.resources + "/test_ref_w_parameters.json")
         url.query = {"metadata": ["a", "b"]}
         result = mo_json_config.get(url)
-        self.assertEqual(
-            result, {"a": ["a", "b"]}, "expecting proper parameter expansion"
-        )
+        self.assertEqual(result, {"a": ["a", "b"]}, "expecting proper parameter expansion")
 
     def test_url_parameter_list(self):
-        url = (
-            self.resources
-            + "/test_ref_w_parameters.json?test1=a&test1=b&test2=c&test1=d"
-        )
+        url = self.resources + "/test_ref_w_parameters.json?test1=a&test1=b&test2=c&test1=d"
         self.assertEqual(
-            URL(url).query,
-            {"test1": ["a", "b", "d"], "test2": "c"},
-            "expecting test1 to be an array",
+            URL(url).query, {"test1": ["a", "b", "d"], "test2": "c"}, "expecting test1 to be an array",
         )
 
     def test_leaves(self):
         url = self.resources + "/test_ref_w_deep_parameters.json?&value.one.two=42"
         result = mo_json_config.get(url)
-        self.assertEqual(
-            result, {"a": {"two": 42}, "b": 42}, "expecting proper parameter expansion"
-        )
+        self.assertEqual(result, {"a": {"two": 42}, "b": 42}, "expecting proper parameter expansion")
 
     def test_leaves_w_array(self):
         url = URL(self.resources + "/test_ref_w_deep_parameters.json")
@@ -117,9 +143,7 @@ class TestRef(FuzzyTestCase):
                 "definitions": {
                     "object_style": {
                         "color": {"description": "css color"},
-                        "border": {"properties": {"color": {
-                            "description": "css color"
-                        }}},
+                        "border": {"properties": {"color": {"description": "css color"}}},
                     },
                     "style": {"properties": {"color": {"description": "css color"}}},
                 },
@@ -130,9 +154,7 @@ class TestRef(FuzzyTestCase):
     @skipIf(IS_TRAVIS, "no home travis")
     def test_read_home(self):
         file = "~/___test_file.json"
-        source = File.new_instance(
-            get_stacktrace(0)[0]["file"], "../resources/simple.json"
-        )
+        source = File.new_instance(get_stacktrace(0)[0]["file"], "../resources/simple.json")
         File.copy(File(source), File(file))
         content = mo_json_config.get("file:///" + file)
 
@@ -185,9 +207,7 @@ class TestRef(FuzzyTestCase):
     def test_missing_env(self):
         doc = {"a": {"$ref": "env://DOES_NOT_EXIST"}}
         doc_url = "http://example.com/"
-        self.assertRaises(
-            Exception, mo_json_config.expand, doc, doc_url, {"value": {"name": "hello"}}
-        )
+        self.assertRaises(Exception, mo_json_config.expand, doc, doc_url, {"value": {"name": "hello"}})
 
     @skipIf(IS_TRAVIS, "no keyring on travis")
     def test_keyring(self):
@@ -207,34 +227,34 @@ class TestRef(FuzzyTestCase):
 
     def test_ssm(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
-        mo_json_config.ssm_has_failed = False
+        _ssm.has_failed = False
         with mock_ssm():
-            ssm = boto3.client('ssm')
-            ssm.put_parameter(Name='/services/graylog/host', Value='localhost', Type='String')
-            ssm.put_parameter(Name='/services/graylog/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog1/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog2/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog3/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog4/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog5/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog6/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog7/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog8/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog9/port', Value='1220', Type='String')
-            ssm.put_parameter(Name='/services/graylog0/port', Value='1220', Type='String')
+            ssm = boto3.client("ssm")
+            ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
+            ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog1/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog2/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog3/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog4/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog5/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog6/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog7/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog8/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog9/port", Value="1220", Type="String")
+            ssm.put_parameter(Name="/services/graylog0/port", Value="1220", Type="String")
 
             doc = {"services": {"$ref": "ssm:///services"}}
             result = mo_json_config.expand(doc, "http://example.com/")
             self.assertEqual(result, {"services": {"graylog": {"host": "localhost", "port": "1220"}}})
 
     def test_ssm_missing(self):
-        mo_json_config.ssm_has_failed = False
+        _ssm.has_failed = False
         with mock_ssm():
             with self.assertRaises("No ssm parameters found at /services"):
                 mo_json_config.get("ssm:///services")
 
     def test_ssm_unreachable(self):
-        mo_json_config.ssm_has_failed = False
+        _ssm.has_failed = False
         result = mo_json_config.get("ssm:///services/tools")
         self.assertEqual(len(result), 0)
 
@@ -244,21 +264,40 @@ class TestRef(FuzzyTestCase):
             temp,
             {
                 "run": {"source": "./mo_json_config"},
-                "report": {"exclude_lines": (
-                    """\npragma: no cover\nexcept Exception as\nexcept BaseException as\nLog.error\nlogger.error\nif DEBUG"""
-                )},
+                "report": {
+                    "exclude_lines": """\npragma: no cover\nexcept Exception as\nexcept BaseException as\nLog.error\nlogger.error\nif DEBUG"""
+                },
             },
         )
 
     def test_ssm_value(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
-        mo_json_config.ssm_has_failed = False
+        _ssm.has_failed = False
+        print(mock_ssm)
         with mock_ssm():
-            ssm = boto3.client('ssm')
-            ssm.put_parameter(Name='/services/graylog/host', Value='localhost', Type='String')
-            ssm.put_parameter(Name='/services/graylog/port', Value='1220', Type='String')
+            ssm = boto3.client("ssm")
+            ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
+            ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
 
             doc = {"services": {"$ref": "ssm:///services/graylog/host"}}
             result = mo_json_config.expand(doc, "http://example.com/")
             self.assertEqual(result, {"services": "localhost"})
 
+    def test_ssm_throttling(self):
+        global _boto_client
+        _ssm.RETRY_SECONDS = 0
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        _ssm.has_failed = False
+        with mock_ssm():
+            try:
+                _boto_client, boto3.client = boto3.client, ThrottlingSsm
+
+                ssm = boto3.client("ssm")
+                ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
+                ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
+
+                doc = {"services": {"$ref": "ssm:///services/graylog/host"}}
+                result = mo_json_config.expand(doc, "http://example.com/")
+                self.assertEqual(result, {"services": "localhost"})
+            finally:
+                boto3.client = _boto_client

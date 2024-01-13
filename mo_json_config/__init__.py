@@ -9,7 +9,6 @@
 #
 
 import os
-import re
 
 from mo_dots import (
     is_data,
@@ -23,8 +22,6 @@ from mo_dots import (
     listwrap,
     unwraplist,
     dict_to_data,
-    Data,
-    join_field,
 )
 from mo_files import File
 from mo_files.url import URL
@@ -35,6 +32,7 @@ from mo_logs import Except, logger
 
 from mo_json_config.configuration import Configuration
 from mo_json_config.convert import ini2value
+from mo_json_config.ssm import get_ssm as _get_ssm
 
 DEBUG = False
 
@@ -309,50 +307,6 @@ def _get_keyring(ref, url):
     except Exception as e:
         new_value = raw_value
     return new_value
-
-
-ssm_has_failed = False
-
-
-def _get_ssm(ref, url):
-    global ssm_has_failed
-
-    output = Data()
-
-    if ssm_has_failed:
-        return output
-    try:
-        import boto3
-    except Exception as cause:
-        logger.error("Missing boto3: `pip install boto3` to use ssm://")
-    try:
-        ssm = boto3.client("ssm")
-        result = ssm.describe_parameters(MaxResults=10)
-        prefix = re.compile("^" + re.escape(ref.path.rstrip("/")) + "(?:/|$)")
-        while True:
-            for param in result["Parameters"]:
-                name = param["Name"]
-                found = prefix.match(name)
-                if not found:
-                    continue
-                tail = join_field(name[found.regs[0][1] :].split("/"))
-                if not tail:
-                    return ssm.get_parameter(Name=name, WithDecryption=True)["Parameter"]["Value"]
-                detail = ssm.get_parameter(Name=name, WithDecryption=True)
-                output[tail] = detail["Parameter"]["Value"]
-
-            next_token = result.get("NextToken")
-            if not next_token:
-                break
-            result = ssm.describe_parameters(NextToken=next_token, MaxResults=10)
-    except Exception as cause:
-        ssm_has_failed = True
-        logger.warning("Could not get ssm parameters", cause=cause)
-        return output
-
-    if len(output) == 0:
-        logger.error("No ssm parameters found at {{path}}", path=ref.path)
-    return output
 
 
 def _get_param(ref, url):
