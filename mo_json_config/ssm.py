@@ -11,20 +11,21 @@
 import re
 
 from mo_dots import Data, join_field
-from mo_future import decorate, get_function_name
+from mo_future import get_function_name
 from mo_logs import logger, Except
-from mo_threads import Till
+from mo_imports import delay_import
 
 RETRY_SECONDS = 1
 TIMEOUT_SECONDS = 60
 
+Till = delay_import("mo_threads.till.Till")
+
 has_failed = False
 
 
-def retry(func):
+def _retry(func):
     func_name = get_function_name(func)
 
-    @decorate(func)
     def output(*args, **kwargs):
         timeout = Till(seconds=TIMEOUT_SECONDS)
         cause = None
@@ -55,7 +56,7 @@ def get_ssm(ref, _):
         logger.error("Missing boto3: `pip install boto3` to use ssm://")
     try:
         ssm = boto3.client("ssm")
-        describe_parameters = retry(ssm.describe_parameters)
+        describe_parameters = _retry(ssm.describe_parameters)
         result = describe_parameters(MaxResults=10)
         prefix = re.compile("^" + re.escape(ref.path.rstrip("/")) + "(?:/|$)")
         while True:
@@ -66,8 +67,8 @@ def get_ssm(ref, _):
                     continue
                 tail = join_field(name[found.regs[0][1] :].split("/"))
                 if not tail:
-                    return retry(ssm.get_parameter)(Name=name, WithDecryption=True)["Parameter"]["Value"]
-                detail = retry(ssm.get_parameter)(Name=name, WithDecryption=True)
+                    return _retry(ssm.get_parameter)(Name=name, WithDecryption=True)["Parameter"]["Value"]
+                detail = _retry(ssm.get_parameter)(Name=name, WithDecryption=True)
                 output[tail] = detail["Parameter"]["Value"]
 
             next_token = result.get("NextToken")
