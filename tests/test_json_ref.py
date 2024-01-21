@@ -58,8 +58,8 @@ class ThrottlingSsm:
         return self.ssm.get_parameter(Name=Name, WithDecryption=WithDecryption)
 
     @add_throttling_errors
-    def describe_parameters(self, MaxResults):
-        return self.ssm.describe_parameters(MaxResults=MaxResults)
+    def describe_parameters(self, **kwargs):
+        return self.ssm.describe_parameters(**kwargs)
 
 
 @add_error_reporting
@@ -302,15 +302,35 @@ class TestRef(FuzzyTestCase):
             finally:
                 boto3.client = _boto_client
 
+    @mock_ssm
     def test_ssm_prefix(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         _ssm.has_failed = False
-        with mock_ssm():
-            ssm = boto3.client("ssm")
-            ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
-            ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
-            for i in range(100):
-                ssm.put_parameter(Name=f"/services/graylog{i}/port", Value=str(1220+i), Type="String")
+        from mo_json_config import ssm
 
-            result = mo_json_config.get("ssm:///services/graylog3")
-            self.assertEqual(result, {"services": {"graylog": {"host": "localhost", "port": "1220"}}})
+        ssm.call_counts = Data()
+
+        client = boto3.client("ssm")
+        for i in range(100):
+            v = f"0{i}"[-2:]
+            a, b = v
+            client.put_parameter(Name=f"/services/graylog{a}/{b}/port", Value=str(1220 + i), Type="String")
+
+        result = mo_json_config.get("ssm:///services/graylog3")
+        self.assertEqual(ssm.call_counts["describe_parameters"], 2)
+
+        self.assertEqual(
+            result,
+            {
+                "0": {"port": "1250"},
+                "1": {"port": "1251"},
+                "2": {"port": "1252"},
+                "3": {"port": "1253"},
+                "4": {"port": "1254"},
+                "5": {"port": "1255"},
+                "6": {"port": "1256"},
+                "7": {"port": "1257"},
+                "8": {"port": "1258"},
+                "9": {"port": "1259"},
+            },
+        )
