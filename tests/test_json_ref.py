@@ -301,3 +301,16 @@ class TestRef(FuzzyTestCase):
                 self.assertEqual(result, {"services": "localhost"})
             finally:
                 boto3.client = _boto_client
+
+    def test_ssm_prefix(self):
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        _ssm.has_failed = False
+        with mock_ssm():
+            ssm = boto3.client("ssm")
+            ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
+            ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
+            for i in range(100):
+                ssm.put_parameter(Name=f"/services/graylog{i}/port", Value=str(1220+i), Type="String")
+
+            result = mo_json_config.get("ssm:///services/graylog3")
+            self.assertEqual(result, {"services": {"graylog": {"host": "localhost", "port": "1220"}}})
