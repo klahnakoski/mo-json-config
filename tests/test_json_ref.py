@@ -334,3 +334,36 @@ class TestRef(FuzzyTestCase):
                 "9": {"port": "1259"},
             },
         )
+
+    def test_env_var_in_string(self):
+        os.environ["ENV"] = "test"
+        doc = {"a": "this/is/a/path/{env://ENV}"}
+        result = mo_json_config.expand(doc)
+        expected = {"a": "this/is/a/path/test"}
+        self.assertEqual(result, expected)
+
+    def test_ref_in_string(self):
+        os.environ["ENV"] = "test"
+        doc = {
+            "a": {"b": "world"},
+            "b": "hello {ref://#a.b}",
+        }
+        result = mo_json_config.expand(doc)
+        expected = {
+            "a": {"b": "world"},
+            "b": "hello world",
+        }
+        self.assertEqual(result, expected)
+
+    def test_concat(self):
+        os.environ["ENV"] = "test"
+        doc = {
+            "a": {"b": "world"},
+            "b": {"$concat": ["hello ", {"$ref": "#a.b"}]},
+        }
+        result = mo_json_config.expand(doc)
+        expected = {
+            "a": {"b": "world"},
+            "b": "hello world",
+        }
+        self.assertEqual(result, expected)
