@@ -14,8 +14,8 @@
     ],
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
     "extras_require": {"tests": [
-        "mo-testing",    "keyring",      "boto3",       "moto",     "pyyaml",
-              "moto"
+          "mo-testing",      "keyring",        "boto3",         "moto",       "pyyaml",
+        "moto>=4.2.14"
     ]},
     "install_requires": [
                          "hjson",   "mo-dots==9.508.24028",  "mo-files==6.508.24028",
