@@ -18,8 +18,8 @@
         "moto>=4.2.14"
     ]},
     "install_requires": [
-                         "hjson",   "mo-dots==9.508.24028",  "mo-files==6.508.24028",
-        "mo-future==7.507.24028",   "mo-json==6.508.24028",   "mo-logs==8.508.24028",
+                         "hjson",   "mo-dots==9.508.24028",  "mo-files==6.511.24028",
+        "mo-future==7.507.24028",   "mo-json==6.511.24028",   "mo-logs==8.508.24028",
                       "requests"
     ],
     "license": "MPL 2.0",
@@ -400,5 +400,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "4.509.24028"
+    "version": "4.511.24028"
 }
