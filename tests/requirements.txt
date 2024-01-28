@@ -3,4 +3,4 @@ keyring
 boto3
 moto
 pyyaml
-moto
+moto>=4.2.14,<5
