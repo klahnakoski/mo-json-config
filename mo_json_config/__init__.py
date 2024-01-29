@@ -60,7 +60,7 @@ def get(url):
 
     phase1 = _replace_ref(dict_to_data({"$ref": url}), base)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     try:
-        phase2 = _replace_locals(phase1, [phase1])
+        phase2 = _replace_locals(phase1, [phase1], url)
         return to_data(phase2)
     except Exception as cause:
         logger.error("problem replacing locals in\n{{phase1}}", phase1=phase1, cause=cause)
@@ -83,16 +83,16 @@ def expand(doc, doc_url="param://", params=None):
 
     url = URL(doc_url)
     url.query = set_default(url.query, params)
-    phase0 = _replace_str(doc, url)
+    phase0 = _replace_str(doc, [doc], url)
     phase1 = _replace_ref(phase0, url)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
-    phase2 = _replace_locals(phase1, [phase1])
+    phase2 = _replace_locals(phase1, [phase1], url)
     return to_data(phase2)
 
 
 is_url = re.compile(r"\{([a-zA-Z]+://[^}]*)}")
 
 
-def _replace_str(node, url):
+def _replace_str(node, doc_path, url):
     if is_text(node):
         acc = []
         end = 0
@@ -109,11 +109,11 @@ def _replace_str(node, url):
         return "".join(acc) + node[end:]
     elif is_data(node):
         return {
-            _replace_str(k, url): _replace_str(v, url)
+            _replace_str(k, [v]+doc_path, url): _replace_str(v, [v]+doc_path, url)
             for k, v in node.items()
         }
     elif is_list(node):
-        return [_replace_str(n, url) for n in node]
+        return [_replace_str(n, [n]+doc_path, url) for n in node]
     return node
 
 
@@ -137,6 +137,7 @@ def _replace_ref(node, url):
         ref_error = None
         ref_remain = []
         for ref in listwrap(refs):
+            ref = URL(_replace_str(str(ref), [node], url))
             if not ref.scheme and not ref.path:
                 # DO NOT TOUCH LOCAL REF YET
                 ref_remain.append(ref)
@@ -183,7 +184,7 @@ def _replace_ref(node, url):
     return node
 
 
-def _replace_locals(node, doc_path):
+def _replace_locals(node, doc_path, url):
     if is_data(node):
         # RECURS, DEEP COPY
         ref = None
@@ -194,11 +195,11 @@ def _replace_locals(node, doc_path):
             elif k == "$concat":
                 if not is_sequence(v):
                     logger.error("$concat expects an array of strings")
-                return coalesce(node.get("separator"), "").join(_replace_locals(vv, doc_path) for vv in v)
+                return coalesce(node.get("separator"), "").join(_replace_locals(vv, doc_path, url) for vv in v)
             elif v == None:
                 continue
             else:
-                output[k] = _replace_locals(v, [v] + doc_path)
+                output[k] = _replace_locals(v, [v] + doc_path, url)
 
         if not ref:
             return output
@@ -221,7 +222,7 @@ def _replace_locals(node, doc_path):
             # ABSOLUTE
             new_value = get_attr(doc_path[-1], frag)
 
-        new_value = _replace_locals(new_value, [new_value] + doc_path)
+        new_value = _replace_locals(new_value, [new_value] + doc_path, url)
 
         if not output:
             return new_value  # OPTIMIZATION FOR CASE WHEN node IS {}
@@ -229,25 +230,9 @@ def _replace_locals(node, doc_path):
             return from_data(set_default(output, new_value))
 
     elif is_list(node):
-        candidate = [_replace_locals(n, [n] + doc_path) for n in node]
-        return candidate
+        return [_replace_locals(n, [n] + doc_path, url) for n in node]
 
-    elif is_text(node):
-        acc = []
-        end = 0
-        for found in is_url.finditer(node):
-            acc.append(node[end: found.start()])
-            try:
-                ref = URL(found.group(1))
-                ref.scheme = None
-                acc.append(_replace_locals({"$ref": ref}, doc_path))
-            except Exception:
-                acc.append(found.group(0))
-            end = found.end()
-        if end == 0:
-            return node
-        return "".join(acc) + node[end:]
-    return node
+    return _replace_str(node, doc_path, url)
 
 
 ###############################################################################
@@ -285,7 +270,7 @@ def _get_file(ref, url):
         content = File(path).read()
     except Exception as e:
         content = None
-        logger.error("Could not read file {{filename}}", filename=path, cause=e)
+        logger.error("Could not read file {{filename}}", filename=File(path).os_path, cause=e)
 
     try:
         new_value = json2value(content, params=ref.query, flexible=True, leaves=True)
