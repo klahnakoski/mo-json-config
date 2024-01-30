@@ -194,7 +194,7 @@ def _replace_locals(path, url):
         if not ref:
             return output
 
-        new_value = _get_value_from_fragment(ref, (None, path), url)
+        new_value = _get_value_from_fragment(ref, path, url)
 
         if not output:
             return new_value  # OPTIMIZATION FOR CASE WHEN node IS {}
@@ -213,7 +213,7 @@ def _get_value_from_fragment(ref, path, url):
     # REFER TO SELF
     frag = ref.fragment
     if frag[0] == ".":
-        doc = path
+        doc = (None, path)
         # RELATIVE
         for i, c in enumerate(frag):
             if c == ".":
@@ -290,11 +290,6 @@ def get_http(ref, doc_path, url):
     return new_value
 
 
-def _get_ref(ref, doc_path, url):
-    ref.scheme = None
-    return _get_value_from_fragment(ref, (None, doc_path), url)
-
-
 def _get_env(ref, doc_path, url):
     # GET ENVIRONMENT VARIABLES
     ref = ref.host
@@ -352,7 +347,7 @@ scheme_loaders = {
     "param": _get_param,
     "keyring": _get_keyring,
     "ssm": _get_ssm,
-    "ref": _get_ref,
+    "ref": _get_value_from_fragment,
 }
 
 
