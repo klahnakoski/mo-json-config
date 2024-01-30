@@ -57,9 +57,9 @@ def get(url):
             base = URL("file://" + os.getcwd().rstrip("/") + "/.")
 
     doc = dict_to_data({"$ref": url})
-    phase1 = _replace_ref(doc, [doc], base)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    phase1 = _replace_ref((doc,), base)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     try:
-        phase2 = _replace_locals(phase1, [phase1], url)
+        phase2 = _replace_locals((phase1,), url)
         return to_data(phase2)
     except Exception as cause:
         logger.error("problem replacing locals in\n{{phase1}}", phase1=phase1, cause=cause)
@@ -82,22 +82,23 @@ def expand(doc, doc_url="param://", params=None):
 
     url = URL(doc_url)
     url.query = set_default(url.query, params)
-    phase1 = _replace_ref(doc, [doc], url)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
-    phase2 = _replace_locals(phase1, [phase1], url)
+    phase1 = _replace_ref((doc, ), url)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    phase2 = _replace_locals((phase1,), url)
     return to_data(phase2)
 
 
 is_url = re.compile(r"\{([a-zA-Z]+://[^}]*)}")
 
 
-def _replace_str(node, doc_path, url):
+def _replace_str(path, url):
+    node = path[0]
     acc = []
     end = 0
     for found in is_url.finditer(node):
         acc.append(node[end : found.start()])
         try:
             ref = URL(found.group(1))
-            acc.append(scheme_loaders[ref.scheme](ref, doc_path, url))
+            acc.append(scheme_loaders[ref.scheme](ref, path, url))
         except Exception:
             acc.append(found.group(0))
         end = found.end()
@@ -106,10 +107,11 @@ def _replace_str(node, doc_path, url):
     return "".join(acc) + node[end:]
 
 
-def _replace_ref(node, doc_path, url):
+def _replace_ref(path, url):
     if url.path.endswith("/"):
         url.path = url.path[:-1]
 
+    node = path[0]
     if is_data(node):
         refs = None
         output = {}
@@ -117,7 +119,7 @@ def _replace_ref(node, doc_path, url):
             if k == "$ref":
                 refs = URL(v)
             else:
-                output[k] = _replace_ref(v, [node] + doc_path, url)
+                output[k] = _replace_ref((v, *path), url)
 
         if not refs:
             return output
@@ -141,7 +143,7 @@ def _replace_ref(node, doc_path, url):
             if ref.scheme not in scheme_loaders:
                 raise logger.error("unknown protocol {{scheme}}", scheme=ref.scheme)
             try:
-                new_value = scheme_loaders[ref.scheme](ref, [node]+doc_path, url)
+                new_value = scheme_loaders[ref.scheme](ref, (node, *path), url)
                 ref_found = True
             except Exception as cause:
                 ref_error = Except.wrap(cause)
@@ -166,28 +168,29 @@ def _replace_ref(node, doc_path, url):
         DEBUG and logger.note("Return {{output}}", output=output)
         return output
     elif is_list(node):
-        output = [_replace_ref(n, [n] + doc_path, url) for n in node]
+        output = [_replace_ref((n, *path), url) for n in node]
         return output
 
     return node
 
 
-def _replace_locals(node, doc_path, url):
+def _replace_locals(path, url):
+    node = path[0]
     if is_data(node):
         # RECURS, DEEP COPY
         ref = None
         output = {}
         for k, v in node.items():
             if k == "$ref":
-                ref = URL(_replace_str(str(v), [node] + doc_path, url))
+                ref = URL(_replace_str((str(v), *path), url))
             elif k == "$concat":
                 if not is_sequence(v):
                     logger.error("$concat expects an array of strings")
-                return coalesce(node.get("separator"), "").join(_replace_locals(vv, doc_path, url) for vv in v)
+                return coalesce(node.get("separator"), "").join(_replace_locals((vv, *path), url) for vv in v)
             elif v == None:
                 continue
             else:
-                output[k] = _replace_locals(v, [v] + doc_path, url)
+                output[k] = _replace_locals((v, *path), url)
 
         if not ref:
             return output
@@ -198,19 +201,19 @@ def _replace_locals(node, doc_path, url):
             # RELATIVE
             for i, p in enumerate(frag):
                 if p != ".":
-                    if i > len(doc_path):
+                    if i > len(path):
                         logger.error(
                             "{{frag|quote}} reaches up past the root document", frag=frag,
                         )
-                    new_value = get_attr(doc_path[i - 1], frag[i::])
+                    new_value = get_attr(path[i - 1], frag[i::])
                     break
             else:
-                new_value = doc_path[len(frag) - 1]
+                new_value = path[len(frag) - 1]
         else:
             # ABSOLUTE
-            new_value = get_attr(doc_path[-1], frag)
+            new_value = get_attr(path[-1], frag)
 
-        new_value = _replace_locals(new_value, [new_value] + doc_path, url)
+        new_value = _replace_locals((new_value, *path), url)
 
         if not output:
             return new_value  # OPTIMIZATION FOR CASE WHEN node IS {}
@@ -218,10 +221,10 @@ def _replace_locals(node, doc_path, url):
             return from_data(set_default(output, new_value))
 
     elif is_list(node):
-        return [_replace_locals(n, [n] + doc_path, url) for n in node]
+        return [_replace_locals((n, *path), url) for n in node]
 
     elif isinstance(node, str):
-        return _replace_str(node, doc_path, url)
+        return _replace_str(path, url)
     return node
 
 
@@ -270,7 +273,7 @@ def _get_file(ref, doc_path, url):
             new_value = ini2value(content)
         except Exception:
             raise logger.error("Can not read {{file}}", file=path, cause=e)
-    new_value = _replace_ref(new_value, [new_value] + doc_path, ref)
+    new_value = _replace_ref((new_value, *path), ref)
     return new_value
 
 
@@ -284,7 +287,7 @@ def get_http(ref, doc_path, url):
 
 def _get_ref(ref, doc_path, url):
     ref.scheme = None
-    return _replace_locals({"$ref": str(ref)}, doc_path, url)
+    return _replace_locals(({"$ref": str(ref)}, *doc_path), url)
 
 
 def _get_env(ref, doc_path, url):
