@@ -367,3 +367,11 @@ class TestRef(FuzzyTestCase):
             "b": "hello world",
         }
         self.assertEqual(result, expected)
+
+    def test_ref_in_string_in_file(self):
+        os.environ["TEST"] = "is-a-test"
+        doc = mo_json_config.get(self.resources +"/test_ref_in_string.json")
+        expected = {
+            "test": "/resources/is-a-test/dir"
+        }
+        self.assertEqual(doc, expected)
