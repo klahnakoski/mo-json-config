@@ -342,7 +342,7 @@ class TestRef(FuzzyTestCase):
         expected = {"a": "this/is/a/path/test"}
         self.assertEqual(result, expected)
 
-    def test_ref_in_string(self):
+    def test_abs_ref_in_string(self):
         os.environ["ENV"] = "test"
         doc = {
             "a": {"b": "world"},
@@ -352,6 +352,32 @@ class TestRef(FuzzyTestCase):
         expected = {
             "a": {"b": "world"},
             "b": "hello world",
+        }
+        self.assertEqual(result, expected)
+
+    def test_rel_ref_in_string(self):
+        os.environ["ENV"] = "test"
+        doc = {
+            "content": {"a": {"b": "world"}, "b": "hello {ref://#.a.b}"},
+            "header": "universe",
+        }
+        result = mo_json_config.expand(doc)
+        expected = {"content": {
+            "a": {"b": "world"},
+            "b": "hello world",
+        }}
+        self.assertEqual(result, expected)
+
+    def test_rel_ref_in_string2(self):
+        os.environ["ENV"] = "test"
+        doc = {
+            "content": {"a": {"b": "world"}, "b": "hello {ref://#..header}"},
+            "header": "universe",
+        }
+        result = mo_json_config.expand(doc)
+        expected = {
+            "content": {"a": {"b": "world"}, "b": "hello universe"},
+            "header": "universe",
         }
         self.assertEqual(result, expected)
 
@@ -367,3 +393,9 @@ class TestRef(FuzzyTestCase):
             "b": "hello world",
         }
         self.assertEqual(result, expected)
+
+    def test_ref_in_string_in_file(self):
+        os.environ["TEST"] = "is-a-test"
+        doc = mo_json_config.get(self.resources + "/test_ref_in_string.json")
+        expected = {"test": "/resources/is-a-test/dir"}
+        self.assertEqual(doc, expected)
