@@ -1,5 +1,5 @@
 mo-testing>=7.523.24033
 keyring>=24.3.0
-boto3>=1.34.35
+boto3>=1.34.36
 pyyaml
 moto>=4.2.14,<5

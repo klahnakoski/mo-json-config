@@ -39,3 +39,6 @@ script:
 after_success:
 - coverage run --rcfile=tests/.coveragerc -m unittest discover -v tests
 - coveralls
+branches:
+  except:
+  - dev
