@@ -94,7 +94,7 @@ class TestRef(FuzzyTestCase):
         doc = mo_json_config.get(self.resources + "/test_ref2.json")
 
         self.assertEqual(
-            doc, {"a": "some_value", "test_key": "test_value", "b": {"test_key": "test_value"},},
+            doc, {"a": "some_value", "test_key": "test_value", "b": {"test_key": "test_value"}, },
         )
 
     def test_empty_object_as_json_parameter(self):
@@ -405,3 +405,23 @@ class TestRef(FuzzyTestCase):
         result = mo_json_config.get("file://tests/resources/test_ref3.json")
         expected = {'a': 'some_value', 'b': {'test_key': 'test_value'}, 'test_key': 'test_value'}
         self.assertEqual(result, expected)
+
+    def test_ref_not_found(self):
+        try:
+            mo_json_config.get(self.resources + "/test_ref4.json")
+            assert False, "should have raised an exception"
+        except Exception as cause:
+            self.assertIn("not found", cause)
+
+    def test_ref_s3(self):
+        found = list(mo_json_config.is_url.finditer("{s3://some_bucket/some_key}"))
+        self.assertTrue(bool(found))
+
+    def test_unknown(self):
+        os.environ["ENV"] = "test"
+        doc = {"content": "hello {blah://header}"}
+        try:
+            mo_json_config.expand(doc)
+            assert False, "should have raised an exception"
+        except Exception as cause:
+            self.assertIn("unknown", cause)
