@@ -1,0 +1,3 @@
+{
+	"a": "some_value{ref://#.other}"
+}

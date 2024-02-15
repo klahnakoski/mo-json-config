@@ -87,7 +87,7 @@ def expand(doc, doc_url="param://", params=None):
     return to_data(phase2)
 
 
-is_url = re.compile(r"\{([a-zA-Z]+://[^}]*)}")
+is_url = re.compile(r"\{([0-9a-zA-Z]+://[^}]*)}")
 
 
 def _replace_str(text, path, url):
@@ -97,9 +97,14 @@ def _replace_str(text, path, url):
         acc.append(text[end: found.start()])
         try:
             ref = URL(found.group(1))
-            acc.append(scheme_loaders[ref.scheme](ref, path, url))
-        except Exception:
-            acc.append(found.group(0))
+            if ref.scheme not in scheme_loaders:
+                raise logger.error("unknown protocol {ref}", ref=ref)
+            value = scheme_loaders[ref.scheme](ref, path, url)
+            if value == None:
+                raise logger.error("value not found {ref}", ref=ref)
+            acc.append(value)
+        except Exception as cause:
+            raise logger.error("problem replacing {ref}", ref=found.group(1), cause=cause)
         end = found.end()
     if end == 0:
         return text
