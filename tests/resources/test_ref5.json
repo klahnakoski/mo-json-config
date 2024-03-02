@@ -1,0 +1,4 @@
+{
+	"a": {"$ref": "file://{env://FILE}"},
+	"b": {"$ref": "file://simple.json"}
+}
