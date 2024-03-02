@@ -25,7 +25,7 @@ import mo_json_config
 from mo_json_config import URL, ini2value
 from mo_json_config import ssm as _ssm
 
-IS_TRAVIS = os.environ.get("TRAVIS") or False
+IS_CI = os.environ.get("CI") or False
 
 
 def add_throttling_errors(func):
@@ -151,7 +151,7 @@ class TestRef(FuzzyTestCase):
             "expecting proper expansion",
         )
 
-    @skipIf(IS_TRAVIS, "no home travis")
+    @skipIf(IS_CI, "no home travis")
     def test_read_home(self):
         file = "~/___test_file.json"
         source = File.new_instance(get_stacktrace(0)[0]["file"], "../resources/simple.json")
@@ -209,7 +209,7 @@ class TestRef(FuzzyTestCase):
         doc_url = "http://example.com/"
         self.assertRaises(Exception, mo_json_config.expand, doc, doc_url, {"value": {"name": "hello"}})
 
-    @skipIf(IS_TRAVIS, "no keyring on travis")
+    @skipIf(IS_CI, "no keyring on travis")
     def test_keyring(self):
         keyring.set_password("example_service", "ekyle", "password")
         doc = {"a": {"$ref": "keyring://example_service?username=ekyle"}}
@@ -217,7 +217,7 @@ class TestRef(FuzzyTestCase):
         result = mo_json_config.expand(doc, doc_url)
         self.assertEqual(result, {"a": "password"})
 
-    @skipIf(IS_TRAVIS, "no keyring on travis")
+    @skipIf(IS_CI, "no keyring on travis")
     def test_keyring_username(self):
         keyring.set_password("example_service", "ekyle", "password")
         doc = {"a": {"$ref": "keyring://ekyle@example_service"}}
