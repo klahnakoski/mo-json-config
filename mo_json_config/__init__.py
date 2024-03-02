@@ -27,7 +27,7 @@ from mo_dots import (
 from mo_files import File
 from mo_files.url import URL
 from mo_json import json2value
-from mo_logs import Except, logger
+from mo_logs import Except, logger, get_stacktrace
 
 from mo_json_config.configuration import Configuration
 from mo_json_config.convert import ini2value
@@ -48,16 +48,26 @@ def get(url):
     url = str(url)
     if "://" not in url:
         logger.error("{{url}} must have a prototcol (eg http://) declared", url=url)
+    path = (dict_to_data({"$ref": url}), None)
 
-    base = URL("")
     if url.startswith("file://") and url[7] != "/":
-        if os.sep == "\\":
-            base = URL("file:///" + os.getcwd().replace(os.sep, "/").rstrip("/") + "/.")
+        causes= []
+        candidates = [os.path.dirname(os.path.abspath(get_stacktrace(start=1)[0]['file'])), os.getcwd()]
+        for candidate in candidates:
+            if os.sep == "\\":
+                base = URL("file:///" + candidate.replace(os.sep, "/").rstrip("/") + "/.")
+            else:
+                base = URL("file://" + candidate.rstrip("/") + "/.")
+            try:
+                phase1 = _replace_ref(path, base)
+                break
+            except Exception as cause:
+                causes.append(cause)
         else:
-            base = URL("file://" + os.getcwd().rstrip("/") + "/.")
+            logger.error("problem replacing ref in {{url}}", url=url, causes=causes)
+    else:
+        phase1 = _replace_ref(path, URL(""))  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
 
-    doc = dict_to_data({"$ref": url})
-    phase1 = _replace_ref((doc, None), base)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     try:
         phase2 = _replace_locals((phase1,None), url)
         return to_data(phase2)

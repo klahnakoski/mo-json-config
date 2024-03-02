@@ -425,3 +425,8 @@ class TestRef(FuzzyTestCase):
             assert False, "should have raised an exception"
         except Exception as cause:
             self.assertIn("unknown", cause)
+
+    def test_ref_5(self):
+        os.environ["FILE"] = "simple.json"
+        doc = mo_json_config.get("file://resources/test_ref5.json")
+        self.assertEqual(doc, {"a":{"test_key": "test_value"}, "b":{"test_key": "test_value"}})

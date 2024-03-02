@@ -45,7 +45,7 @@ def _retry(func):
     return output
 
 
-def get_ssm(ref, doc_path, _):
+def get_ssm(ref, doc_path=None, location=None):
     global has_failed
 
     output = Data()
