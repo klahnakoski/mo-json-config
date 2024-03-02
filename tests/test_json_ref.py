@@ -95,7 +95,7 @@ class TestRef(FuzzyTestCase):
         doc = mo_json_config.get(self.resources + "/test_ref2.json")
 
         self.assertEqual(
-            doc, {"a": "some_value", "test_key": "test_value", "b": {"test_key": "test_value"}, },
+            doc, {"a": "some_value", "test_key": "test_value", "b": {"test_key": "test_value"},},
         )
 
     def test_empty_object_as_json_parameter(self):
@@ -362,10 +362,7 @@ class TestRef(FuzzyTestCase):
             "header": "universe",
         }
         result = mo_json_config.expand(doc)
-        expected = {"content": {
-            "a": {"b": "world"},
-            "b": "hello world",
-        }}
+        expected = {"content": {"a": {"b": "world"}, "b": "hello world",}}
         self.assertEqual(result, expected)
 
     def test_rel_ref_in_string2(self):
@@ -403,7 +400,7 @@ class TestRef(FuzzyTestCase):
     def test_ref_in_ref(self):
         os.environ["FILENAME"] = "simple"
         result = mo_json_config.get("file://tests/resources/test_ref3.json")
-        expected = {'a': 'some_value', 'b': {'test_key': 'test_value'}, 'test_key': 'test_value'}
+        expected = {"a": "some_value", "b": {"test_key": "test_value"}, "test_key": "test_value"}
         self.assertEqual(result, expected)
 
     def test_ref_not_found(self):
@@ -429,7 +426,7 @@ class TestRef(FuzzyTestCase):
     def test_ref_5(self):
         os.environ["FILE"] = "simple.json"
         doc = mo_json_config.get("file://resources/test_ref5.json")
-        self.assertEqual(doc, {"a":{"test_key": "test_value"}, "b":{"test_key": "test_value"}})
+        self.assertEqual(doc, {"a": {"test_key": "test_value"}, "b": {"test_key": "test_value"}})
 
     def test_get_ssm(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
@@ -441,3 +438,31 @@ class TestRef(FuzzyTestCase):
 
             result = get_ssm("ssm:///services/graylog")
             self.assertEqual(result, {"host": "localhost", "port": "1220"})
+
+    def test_get_home(self):
+        File("~/test.json").write('{"a": "b"}')
+        result = mo_json_config.get("file://~/test.json")
+        self.assertEqual(result, {"a": "b"})
+
+    def test_get_home_missing(self):
+        with self.assertRaises(Exception):
+            mo_json_config.get("file://~/no_exists.json")
+
+    def test_get_home_bad_format(self):
+        File("~/test.json").write('{"a": "b"')
+        with self.assertRaises(Exception):
+            mo_json_config.get("file://~/test.json")
+
+    def test_http(self):
+        result = mo_json_config.get(
+            "https://raw.githubusercontent.com/klahnakoski/mo-json-config/dev/tests/resources/simple.json"
+        )
+        self.assertEqual(result, {"test_key": "test_value"})
+
+    def test_too_simple(self):
+        with self.assertRaises(Exception):
+            mo_json_config.get("tests/resources/simple.json")
+
+    def test_invalid_scheme(self):
+        with self.assertRaises(Exception):
+            mo_json_config.get("no://example.com")
