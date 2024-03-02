@@ -24,6 +24,7 @@ from moto import mock_ssm
 import mo_json_config
 from mo_json_config import URL, ini2value
 from mo_json_config import ssm as _ssm
+from mo_json_config.ssm import get_ssm
 
 IS_CI = os.environ.get("CI") or False
 
@@ -273,7 +274,6 @@ class TestRef(FuzzyTestCase):
     def test_ssm_value(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         _ssm.has_failed = False
-        print(mock_ssm)
         with mock_ssm():
             ssm = boto3.client("ssm")
             ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
@@ -430,3 +430,14 @@ class TestRef(FuzzyTestCase):
         os.environ["FILE"] = "simple.json"
         doc = mo_json_config.get("file://resources/test_ref5.json")
         self.assertEqual(doc, {"a":{"test_key": "test_value"}, "b":{"test_key": "test_value"}})
+
+    def test_get_ssm(self):
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        _ssm.has_failed = False
+        with mock_ssm():
+            ssm = boto3.client("ssm")
+            ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
+            ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
+
+            result = get_ssm("ssm:///services/graylog")
+            self.assertEqual(result, {"host": "localhost", "port": "1220"})
