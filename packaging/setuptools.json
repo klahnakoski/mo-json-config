@@ -14,7 +14,7 @@
     ],
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
     "extras_require": {"tests": [
-        "mo-testing>=7.523.24033",         "keyring>=24.3.0",          "boto3>=1.34.50",
+        "mo-testing>=7.523.24033",         "keyring>=24.3.1",          "boto3>=1.34.54",
                          "pyyaml",            "moto>=4.2.14"
     ]},
     "install_requires": [
@@ -28,8 +28,8 @@
             "# More JSON Configuration!",
             "",
             "[![PyPI Latest Release](https://img.shields.io/pypi/v/mo-json-config.svg)](https://pypi.org/project/mo-json-config/)",
-            "[![Build Status](https://app.travis-ci.com/klahnakoski/mo-json-config.svg?branch=master)](https://travis-ci.com/github/klahnakoski/mo-json-config)",
-            "[![Coverage Status](https://coveralls.io/repos/github/klahnakoski/mo-json-config/badge.svg?branch=master)](https://coveralls.io/github/klahnakoski/mo-json-config?branch=master)",
+            "[![Build Status](https://github.com/klahnakoski/mo-json-config/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/klahnakoski/mo-json-config/actions/workflows/build.yml)",
+            "[![Coverage Status](https://coveralls.io/repos/github/klahnakoski/mo-json-config/badge.svg?branch=dev)](https://coveralls.io/github/klahnakoski/mo-json-config?branch=dev)",
             "",
             "A JSON template format intended for configuration files.",
             "",
@@ -400,5 +400,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "4.553.24062"
+    "version": "4.555.24068"
 }

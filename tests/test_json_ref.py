@@ -24,8 +24,9 @@ from moto import mock_ssm
 import mo_json_config
 from mo_json_config import URL, ini2value
 from mo_json_config import ssm as _ssm
+from mo_json_config.ssm import get_ssm
 
-IS_TRAVIS = os.environ.get("TRAVIS") or False
+IS_CI = os.environ.get("CI") or False
 
 
 def add_throttling_errors(func):
@@ -94,7 +95,7 @@ class TestRef(FuzzyTestCase):
         doc = mo_json_config.get(self.resources + "/test_ref2.json")
 
         self.assertEqual(
-            doc, {"a": "some_value", "test_key": "test_value", "b": {"test_key": "test_value"}, },
+            doc, {"a": "some_value", "test_key": "test_value", "b": {"test_key": "test_value"},},
         )
 
     def test_empty_object_as_json_parameter(self):
@@ -151,7 +152,7 @@ class TestRef(FuzzyTestCase):
             "expecting proper expansion",
         )
 
-    @skipIf(IS_TRAVIS, "no home travis")
+    @skipIf(IS_CI, "no home travis")
     def test_read_home(self):
         file = "~/___test_file.json"
         source = File.new_instance(get_stacktrace(0)[0]["file"], "../resources/simple.json")
@@ -209,7 +210,7 @@ class TestRef(FuzzyTestCase):
         doc_url = "http://example.com/"
         self.assertRaises(Exception, mo_json_config.expand, doc, doc_url, {"value": {"name": "hello"}})
 
-    @skipIf(IS_TRAVIS, "no keyring on travis")
+    @skipIf(IS_CI, "no keyring on travis")
     def test_keyring(self):
         keyring.set_password("example_service", "ekyle", "password")
         doc = {"a": {"$ref": "keyring://example_service?username=ekyle"}}
@@ -217,7 +218,7 @@ class TestRef(FuzzyTestCase):
         result = mo_json_config.expand(doc, doc_url)
         self.assertEqual(result, {"a": "password"})
 
-    @skipIf(IS_TRAVIS, "no keyring on travis")
+    @skipIf(IS_CI, "no keyring on travis")
     def test_keyring_username(self):
         keyring.set_password("example_service", "ekyle", "password")
         doc = {"a": {"$ref": "keyring://ekyle@example_service"}}
@@ -273,7 +274,6 @@ class TestRef(FuzzyTestCase):
     def test_ssm_value(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         _ssm.has_failed = False
-        print(mock_ssm)
         with mock_ssm():
             ssm = boto3.client("ssm")
             ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
@@ -362,10 +362,7 @@ class TestRef(FuzzyTestCase):
             "header": "universe",
         }
         result = mo_json_config.expand(doc)
-        expected = {"content": {
-            "a": {"b": "world"},
-            "b": "hello world",
-        }}
+        expected = {"content": {"a": {"b": "world"}, "b": "hello world",}}
         self.assertEqual(result, expected)
 
     def test_rel_ref_in_string2(self):
@@ -403,7 +400,7 @@ class TestRef(FuzzyTestCase):
     def test_ref_in_ref(self):
         os.environ["FILENAME"] = "simple"
         result = mo_json_config.get("file://tests/resources/test_ref3.json")
-        expected = {'a': 'some_value', 'b': {'test_key': 'test_value'}, 'test_key': 'test_value'}
+        expected = {"a": "some_value", "b": {"test_key": "test_value"}, "test_key": "test_value"}
         self.assertEqual(result, expected)
 
     def test_ref_not_found(self):
@@ -429,4 +426,43 @@ class TestRef(FuzzyTestCase):
     def test_ref_5(self):
         os.environ["FILE"] = "simple.json"
         doc = mo_json_config.get("file://resources/test_ref5.json")
-        self.assertEqual(doc, {"a":{"test_key": "test_value"}, "b":{"test_key": "test_value"}})
+        self.assertEqual(doc, {"a": {"test_key": "test_value"}, "b": {"test_key": "test_value"}})
+
+    def test_get_ssm(self):
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        _ssm.has_failed = False
+        with mock_ssm():
+            ssm = boto3.client("ssm")
+            ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
+            ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
+
+            result = get_ssm("ssm:///services/graylog")
+            self.assertEqual(result, {"host": "localhost", "port": "1220"})
+
+    def test_get_home(self):
+        File("~/test.json").write('{"a": "b"}')
+        result = mo_json_config.get("file://~/test.json")
+        self.assertEqual(result, {"a": "b"})
+
+    def test_get_home_missing(self):
+        with self.assertRaises(Exception):
+            mo_json_config.get("file://~/no_exists.json")
+
+    def test_get_home_bad_format(self):
+        File("~/test.json").write('{"a": "b"')
+        with self.assertRaises(Exception):
+            mo_json_config.get("file://~/test.json")
+
+    def test_http(self):
+        result = mo_json_config.get(
+            "https://raw.githubusercontent.com/klahnakoski/mo-json-config/dev/tests/resources/simple.json"
+        )
+        self.assertEqual(result, {"test_key": "test_value"})
+
+    def test_too_simple(self):
+        with self.assertRaises(Exception):
+            mo_json_config.get("tests/resources/simple.json")
+
+    def test_invalid_scheme(self):
+        with self.assertRaises(Exception):
+            mo_json_config.get("no://example.com")
