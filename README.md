@@ -330,7 +330,7 @@ The `param` scheme is a good way to set property values in a document, but somet
 
 ```javascript
 {//above_example.json
-    {{var_name}}: "value"
+    {var_name}: "value"
 }
 ```
 
