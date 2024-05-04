@@ -1,7 +1,7 @@
-# Tests pass with these versions 2024-04-28
+# Tests pass with these versions 2024-05-04
 # pip install --no-deps -r tests/requirements.lock
-boto3==1.34.93
-botocore==1.34.93
+boto3==1.34.98
+botocore==1.34.98
 certifi==2024.2.2
 cffi==1.16.0
 charset-normalizer==3.3.2
@@ -18,21 +18,22 @@ jmespath==1.0.1
 keyring==25.2.0
 MarkupSafe==2.1.4
 mo-collections==5.608.24119
-mo-dots==9.606.24115
-mo-files==6.609.24119
+mo-dots==10.615.24125
+mo-files==6.619.24125
 mo-future==7.584.24095
 mo-imports==7.584.24095
-mo-json==6.609.24119
-mo-kwargs==7.606.24115
-mo-logs==8.608.24119
-mo-math==7.606.24115
-mo-testing==8.608.24119
-mo-threads==6.608.24119
-mo-times==5.609.24119
+mo-json==6.619.24125
+mo-kwargs==7.615.24125
+mo-logs==8.618.24125
+mo-math==7.616.24125
+mo-testing==8.610.24119
+mo-threads==6.610.24119
+mo-times==5.619.24125
 more-itertools==10.2.0
 moto==4.2.14
 pycparser==2.21
 python-dateutil==2.8.2
+pytz==2024.1
 pywin32-ctypes==0.2.2
 PyYAML==6.0.1
 requests==2.31.0
