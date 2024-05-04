@@ -13,3 +13,4 @@ dist
 .venv
 
 /setup.py
+/MANIFEST.in
