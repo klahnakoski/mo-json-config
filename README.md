@@ -13,7 +13,12 @@ This module reads JSON files and expands references found within. It is much lik
 1. This module uses the dot (`.`) as a path separator in the URL fragment. For example, an absolute reference looks like `{"$ref": "#message.type.name"}`, and a relative reference looks like `{"$ref": "#..type.name"}`.   This syntax better matches that used by Javascript.
 2. The properties found in a `$ref` object are not ignored. Rather, they are to *override* the referenced object properties. This allows you to reference a default document, and replace the particular properties as needed. *more below*
 3. References can accept URL parameters: JSON is treated like a string template for more sophisticated value replacement. *see below*
-4. You can reference files and environment variables in addition to general URLs.
+4. You can reference 
+   * http URLs
+   * files
+   * environment variables
+   * keyring values
+   * AWS SSM parameters
 
 ## Quick guide
 
@@ -39,14 +44,12 @@ assert configuration.someDeep == "value"
 ```
 
 
-
-
 ## Schemes
 
-This module can load configuration from a number of sources, and you can access them via URI scheme.  Beyond the common `file` and `http` schemes, there are
+This module can load configuration from a number of sources, and you can access them via URI scheme.  Beyond the common `file` and `https` schemes, there are
 
 
-### Environment Variables
+#### Environment Variables
 
 Use the `env` scheme for accessing environment variables:
 
@@ -57,7 +60,7 @@ Use the `env` scheme for accessing environment variables:
     }
 
 
-### Keystore Values
+#### Keystore Values
 
 The [keyring](https://pypi.org/project/keyring/) library can be used with the `keyring` scheme:
  
@@ -79,7 +82,7 @@ The host is in `<username>@<server_name>` format; invoking `keyring.get_password
 > Be sure to `pip install keyring` to use keyring
 
 
-### AWS SSM
+#### AWS SSM
 
 The `ssm` scheme can be used to read from the AWS parameter store.  Here is an example that will read all parameters that start with "/configuration" and adds them to the global configuration object:
 
@@ -89,6 +92,33 @@ from mo_json_config import get, configuration
 configuration |= get("ssm:///configuration")
 ```
   
+## String Template Expansion
+
+Before going into the minutia of expanding `$ref` objects, let's look at simpler string template expansion:  Any string that contains a reference (of the form `{scheme://...}`) will have that reference replaced with the string it points to.  
+
+Consider an example where we want to name a number of components with a common application name.  You may define them by using.  
+
+    {
+        "database_name": "{env://APP_NAME}-database"
+        "queue_name": "{env://APP_NAME}-queue"
+    }
+
+If we assume
+
+```
+export APP_NAME=my-app-name
+```
+
+then the above JSON will expand to
+
+
+    {
+        "database_name": "my-app-name-database"
+        "queue_name": "my-app-name-queue"
+    }
+
+These references can be used in the `$ref` object, as well, providing another level of indirection to the configuration file.
+
 
 ## Using references in config files
 
