@@ -414,6 +414,16 @@ class TestRef(FuzzyTestCase):
         found = list(mo_json_config.is_url.finditer("{s3://some_bucket/some_key}"))
         self.assertTrue(bool(found))
 
+    def test_scheme(self):
+        os.environ["ENV"] = "test"
+        doc = {
+            "content": {"a": {"b": "world"}, "b": "hello {scheme://#.a.b}"},
+            "header": "universe",
+        }
+        result = mo_json_config.expand(doc)
+        expected = {"content": {"a": {"b": "world"}, "b": "hello {scheme://#.a.b}"}}
+        self.assertEqual(result, expected)
+
     def test_unknown(self):
         os.environ["ENV"] = "test"
         doc = {"content": "hello {blah://header}"}
