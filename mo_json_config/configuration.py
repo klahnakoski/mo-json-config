@@ -3,16 +3,18 @@
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
-# You can obtain one at http://mozilla.org/MPL/2.0/.
+# You can obtain one at https://www.mozilla.org/en-US/MPL/2.0/.
 #
 # Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from mo_future import Mapping
 from mo_dots import is_data, join_field, leaves_to_data, concat_field
-from mo_dots.datas import register_data, Data
+from mo_dots.datas import register_data, Data, from_data
+from mo_future import Mapping
 from mo_logs import logger
 from mo_logs.strings import wordify
+
+from mo_json_config.expander import expand
 
 
 class Configuration(Mapping):
@@ -20,6 +22,18 @@ class Configuration(Mapping):
         if not isinstance(config, Mapping) and not is_data(config):
             logger.error("Expecting data, not {config}", config=config)
         self._path = path
+
+        print(config.__class__.__name__)
+        print(config)
+        print({**config})
+        print(Data(**config))
+        print(from_data(Data(**config)))
+        print(Data(**config)["another.test"])
+        print(list(Data(**config).leaves()))
+        print({
+            join_field(wordify(path)): value for path, value in Data(**config).leaves()
+        })
+
         self._lookup = leaves_to_data({
             join_field(wordify(path)): value for path, value in Data(**config).leaves()
         })
@@ -55,6 +69,7 @@ class Configuration(Mapping):
         """
         RECURSIVE COALESCE OF PROPERTIES
         """
+        other = expand(other)
         self._lookup |= Configuration(other)._lookup
         return self
 

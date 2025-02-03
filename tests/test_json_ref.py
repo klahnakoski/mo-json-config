@@ -3,7 +3,7 @@
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
-# You can obtain one at http://mozilla.org/MPL/2.0/.
+# You can obtain one at https://www.mozilla.org/en-US/MPL/2.0/.
 #
 # Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
@@ -22,7 +22,7 @@ from mo_threads import stop_main_thread
 from moto import mock_ssm
 
 import mo_json_config
-from mo_json_config import URL, ini2value
+from mo_json_config.expander import URL, ini2value
 from mo_json_config import ssm as _ssm
 from mo_json_config.ssm import get_ssm
 
@@ -256,8 +256,8 @@ class TestRef(FuzzyTestCase):
 
     def test_ssm_unreachable(self):
         _ssm.has_failed = False
-        result = mo_json_config.get("ssm:///services/tools")
-        self.assertEqual(len(result), 0)
+        with self.assertRaises(Exception):
+            result = mo_json_config.get("ssm:///services/tools")
 
     def test_ini(self):
         temp = ini2value(File("tests/.coveragerc").read())
