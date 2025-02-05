@@ -19,8 +19,6 @@ class Configuration(Mapping):
         if not isinstance(config, Mapping) and not is_data(config):
             logger.error("Expecting data, not {config}", config=config)
         self._path = path
-
-        print(f"config={config}")
         self._lookup = leaves_to_data({
             join_field(wordify(path)): value
             for path, value in Data(**config).leaves()

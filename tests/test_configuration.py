@@ -13,6 +13,8 @@ import os
 from mo_future import first
 from mo_testing.fuzzytestcase import FuzzyTestCase
 
+os.environ.setdefault("TESTING", "1")
+
 import mo_json_config
 from mo_json_config import Configuration
 

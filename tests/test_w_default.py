@@ -46,7 +46,6 @@ class TestWithDefault(TestCase):
             config_data = expand({
                 "user_config": {"$ref": "file:///path/to/config.json", "$default": {"username": "default_user", "password": "default_pass"}}
             })
-            print(config_data)
             configuration |= config_data
             self.assertEqual(configuration.userConfig.username, "file_user")
             self.assertEqual(configuration.userConfig.password, "file_pass")
@@ -58,7 +57,6 @@ class TestWithDefault(TestCase):
             config_data = expand({
                 "user_config": {"$ref": "file:///path/to/config.json"}
             })
-            print(config_data)
             configuration.clear()
             configuration |= config_data
             self.assertEqual(configuration.userConfig.username, "file_user")

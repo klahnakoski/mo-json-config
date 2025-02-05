@@ -39,10 +39,6 @@ DEBUG = False
 NOTSET = {}
 
 
-if os.environ.get("TESTING"):
-    DEBUG = True
-
-
 def get_file(file):
     file = File(file)
     return get("file://" + file.abs_path)
@@ -51,7 +47,6 @@ def get_file(file):
 LOOKBACK = 2 if DEBUG else 1
 
 
-@mockable(DEBUG)
 def get(url):
     """
     USE json.net CONVENTIONS TO LINK TO INLINE OTHER JSON
@@ -285,8 +280,7 @@ def _get_value_from_fragment(ref, path, url):
 ###############################################################################
 ## SCHEME LOADERS ARE BELOW THIS LINE
 ###############################################################################
-
-@mockable(DEBUG)
+@mockable
 def _get_file(ref, path, url):
 
     if ref.path.startswith("~"):
