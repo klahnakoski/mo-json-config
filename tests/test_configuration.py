@@ -21,9 +21,6 @@ class TestConfiguration(FuzzyTestCase):
     def test_config(self):
         configuration = mo_json_config.configuration
 
-
-
-
         configuration |= {
             "thisIsATest": "A",
             "another.test": "B",

@@ -200,8 +200,10 @@ def _replace_ref(path, url):
                 raise ref_error
         if ref_remain:
             output["$ref"] = unwraplist(ref_remain)
-        if defaults is not NOTSET:
-            output["$default"] = defaults
+            if defaults is not NOTSET:
+                output["$default"] = defaults
+        if not output and defaults is not NOTSET:
+            output = defaults
         DEBUG and logger.note("Return {output}", output=output)
         return output
     elif is_list(node):
