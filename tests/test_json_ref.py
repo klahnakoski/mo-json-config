@@ -19,12 +19,20 @@ from mo_future import get_function_name, decorate
 from mo_logs.exceptions import get_stacktrace
 from mo_testing.fuzzytestcase import FuzzyTestCase, add_error_reporting
 from mo_threads import stop_main_thread
-from moto import mock_ssm
+
 
 import mo_json_config
 from mo_json_config.expander import URL, ini2value
 from mo_json_config import ssm as _ssm
 from mo_json_config.ssm import get_ssm
+
+import sys
+
+if sys.version_info <= (3, 11):
+    from moto import mock_ssm
+else:
+    from moto import mock_aws as mock_ssm
+
 
 IS_CI = os.environ.get("CI") or False
 
