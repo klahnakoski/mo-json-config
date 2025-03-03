@@ -19,11 +19,11 @@ from mo_future import get_function_name, decorate
 from mo_logs.exceptions import get_stacktrace
 from mo_testing.fuzzytestcase import FuzzyTestCase, add_error_reporting
 from mo_threads import stop_main_thread
-from moto import mock_aws
+from moto import mock_aws as mock_ssm
 
 import mo_json_config
-from mo_json_config.expander import URL, ini2value
 from mo_json_config import ssm as _ssm
+from mo_json_config.expander import URL, ini2value
 from mo_json_config.ssm import get_ssm
 
 IS_CI = os.environ.get("CI") or False
@@ -229,7 +229,7 @@ class TestRef(FuzzyTestCase):
     def test_ssm(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         _ssm.has_failed = False
-        with mock_aws():
+        with mock_ssm():
             ssm = boto3.client("ssm")
             ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
             ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
@@ -250,7 +250,7 @@ class TestRef(FuzzyTestCase):
 
     def test_ssm_missing(self):
         _ssm.has_failed = False
-        with mock_aws():
+        with mock_ssm():
             with self.assertRaises("No ssm parameters found at /services"):
                 mo_json_config.get("ssm:///services")
 
@@ -274,7 +274,7 @@ class TestRef(FuzzyTestCase):
     def test_ssm_value(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         _ssm.has_failed = False
-        with mock_aws():
+        with mock_ssm():
             ssm = boto3.client("ssm")
             ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
             ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")
@@ -288,7 +288,7 @@ class TestRef(FuzzyTestCase):
         _ssm.RETRY_SECONDS = 0
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         _ssm.has_failed = False
-        with mock_aws():
+        with mock_ssm():
             try:
                 _boto_client, boto3.client = boto3.client, ThrottlingSsm
 
@@ -302,7 +302,7 @@ class TestRef(FuzzyTestCase):
             finally:
                 boto3.client = _boto_client
 
-    @mock_aws
+    @mock_ssm
     def test_ssm_prefix(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         _ssm.has_failed = False
@@ -441,7 +441,7 @@ class TestRef(FuzzyTestCase):
     def test_get_ssm(self):
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
         _ssm.has_failed = False
-        with mock_aws():
+        with mock_ssm():
             ssm = boto3.client("ssm")
             ssm.put_parameter(Name="/services/graylog/host", Value="localhost", Type="String")
             ssm.put_parameter(Name="/services/graylog/port", Value="1220", Type="String")

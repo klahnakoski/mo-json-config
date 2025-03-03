@@ -13,8 +13,10 @@ import re
 from mo_dots import Data, join_field
 from mo_files import URL
 from mo_future import get_function_name
-from mo_logs import logger, Except
 from mo_imports import delay_import
+from mo_logs import logger, Except
+
+boto3 = delay_import("boto3")
 
 RETRY_SECONDS = 1
 TIMEOUT_SECONDS = 60
@@ -43,6 +45,7 @@ def _retry(func):
                     continue
                 logger.error("failure with {func}", func=func_name, cause=cause)
         logger.error("timeout with {func}", func=func_name, cause=cause)
+
     return output
 
 
@@ -53,10 +56,6 @@ def get_ssm(ref, doc_path=None, location=None):
 
     if has_failed:
         return output
-    try:
-        import boto3
-    except Exception:
-        logger.error("Missing boto3: `pip install boto3` to use ssm://")
 
     if isinstance(ref, str):
         ref = URL(ref)
@@ -66,11 +65,7 @@ def get_ssm(ref, doc_path=None, location=None):
         describe_parameters = _retry(ssm.describe_parameters)
         get_parameter = _retry(ssm.get_parameter)
 
-        filters = [{
-            'Key': 'Name',
-            'Option': 'BeginsWith',
-            'Values': [ref.path.rstrip('/')]
-        }]
+        filters = [{"Key": "Name", "Option": "BeginsWith", "Values": [ref.path.rstrip("/")]}]
 
         result = describe_parameters(MaxResults=10, ParameterFilters=filters)
         prefix = re.compile("^" + re.escape(ref.path.rstrip("/")) + "(?:/|$)")
@@ -93,9 +88,7 @@ def get_ssm(ref, doc_path=None, location=None):
     except Exception as cause:
         has_failed = True
         logger.warning("Could not get ssm parameters", cause=cause)
-        return output
 
     if len(output) == 0:
         logger.error("No ssm parameters found at {path}", path=ref.path)
     return output
-
