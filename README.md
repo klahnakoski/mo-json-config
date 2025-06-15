@@ -6,6 +6,9 @@
 
 A JSON template format intended for configuration files.
 
+[See changes](https://github.com/klahnakoski/mo-json-config#version-changes-features)
+
+
 ## Motivation
 
 This module reads JSON files and expands references found within. It is much like the IETF's  [JSON Reference](https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-03) specification, but with the following differences:
@@ -330,6 +333,8 @@ the URL paramters are used to expand the given document, **then** the `$ref` pro
 
 ## Comments
 
+JSON parsing is performed using [Hjson](https://hjson.github.io/), as such there are numerous flexibilities in the syntax.  The most important is comments:
+
 End-of-line Comments are allowed, using either `#` or `//` prefix:
 
 ```
@@ -354,44 +359,9 @@ Multiline comments are also allowed, using either Python's triple-quotes
 ```
 
 
-## Parameterized JSON
 
-The `param` scheme is a good way to set property values in a document, but sometimes that is not enough.  Sometimes you want to parameterize property names, or change the document structure in unconventional ways. For these cases, JSON documents are allowed named parameters at the unicode level. Parameters are surrounded by moustaches `{{.}}`:
+## Version Changes, Features
 
-```javascript
-{//above_example.json
-    {var_name}: "value"
-}
-```
+### Version 5 
 
-Parameter replacement is performed on the unicode text before being interpreted by the JSON parser. It is your responsibility to ensure the parameter replacement will result in valid JSON.
-
-You pass the parameters by including them as URL parameters:
-
-	{"$ref": "//~/above_example.json?var_name=%22hello%22"}
-
-Which will expand to
-
-    {
-        "hello": "value"
-    }
-
-The pipe (`|`) symbol can be used to perform some common conversions
-
-
-    {
-        {{var_name|quote}}: "value"
-    }
-
-The `quote` transformation will deal with quoting, so ...
-
-	{"$ref": "//~/above_example.json?var_name=hello"}
-
-... expands to the same:
-
-    {
-        "hello": "value"
-    }
-
-Please see [`expand_template()` in the `strings` module](https://github.com/klahnakoski/mo-logs/blob/dev/mo_logs/strings.py) for more on the parameter replacement, and transformations available
-
+**June 2025** - removed general string replacment using moustaches `{{param_name}}`. Only `{param://param_name}` syntax is allowed.  This is more consistent with string replacement in general.
