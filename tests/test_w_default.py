@@ -4,8 +4,9 @@ from unittest import TestCase
 from mo_testing import add_error_reporting
 
 from mo_json_config import configuration
-from mo_json_config.expander import _get_file, expand
-from mo_json_config.mocks import mock
+from mo_json_config.expander import expand
+from mo_testing.mocks import mock
+from mo_json_config.schemes import _get_file
 
 __all__ = ["configuration"]
 

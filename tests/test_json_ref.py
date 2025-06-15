@@ -15,6 +15,7 @@ import keyring
 from botocore.exceptions import ClientError
 from mo_dots import Data
 from mo_files import File
+from mo_files import URL
 from mo_future import get_function_name, decorate
 from mo_logs.exceptions import get_stacktrace
 from mo_testing.fuzzytestcase import FuzzyTestCase, add_error_reporting
@@ -23,7 +24,7 @@ from moto import mock_aws as mock_ssm
 
 import mo_json_config
 from mo_json_config import ssm as _ssm
-from mo_json_config.expander import URL, ini2value
+from mo_json_config.convert import ini2value
 from mo_json_config.ssm import get_ssm
 
 IS_CI = os.environ.get("CI") or False
@@ -476,3 +477,41 @@ class TestRef(FuzzyTestCase):
     def test_invalid_scheme(self):
         with self.assertRaises(Exception):
             mo_json_config.get("no://example.com")
+
+    def test_param_v2(self):
+        doc = {"a": {"$ref": "param://value"}}
+        doc_url = "http://example.com/"
+        result = mo_json_config.expand(doc, doc_url, {"value": "hello"})
+        self.assertEqual(result, {"a": "hello"})
+
+    def test_param_v2_in_string(self):
+        doc = {"a": "{param://value}"}
+        doc_url = "http://example.com/"
+        result = mo_json_config.expand(doc, doc_url, {"value": "hello"})
+        self.assertEqual(result, {"a": "hello"})
+
+    def test_param_v2_w_url(self):
+        doc = {"a": {"$ref": "param://value"}}
+        doc_url = "http://example.com/?value=hello"
+        result = mo_json_config.expand(doc, doc_url)
+        self.assertEqual(result, {"a": "hello"})
+
+    def test_param_v2_in_string(self):
+        doc = {"a": "hello {param://value}"}
+        doc_url = "http://example.com/"
+        result = mo_json_config.expand(doc, doc_url, {"value": "world"})
+        self.assertEqual(result, {"a": "hello world"})
+
+    def test_param_v2_deep(self):
+        doc = {"a": {"$ref": "param://value.name"}}
+        doc_url = "http://example.com/"
+        result = mo_json_config.expand(doc, doc_url, {"value": {"name": "hello"}})
+        self.assertEqual(result, {"a": "hello"})
+
+    def test_param_v2_in_key(self):
+        doc = {"{param://name}": "hello"}
+        doc_url = "http://example.com/"
+        result = mo_json_config.expand(doc, doc_url, {"name": "test"})
+        self.assertEqual(result, {"test": "hello"})
+
+
