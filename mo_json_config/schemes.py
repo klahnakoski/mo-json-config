@@ -17,7 +17,7 @@ from mo_json import json2value
 from mo_logs import Except, logger
 
 from mo_json_config.convert import ini2value
-from mo_json_config.mocks import mockable
+from mo_future import mockable
 from mo_json_config.ssm import get_ssm as _get_ssm
 
 _replace_foreign_ref = delay_import("mo_json_config.expander._replace_foreign_ref")

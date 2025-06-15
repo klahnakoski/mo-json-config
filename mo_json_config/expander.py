@@ -9,21 +9,16 @@
 #
 
 import os
-import re
 
 from mo_dots import (
     is_data,
     is_list,
     set_default,
-    from_data,
     to_data,
-    is_sequence,
-    coalesce,
     get_attr,
     listwrap,
     unwraplist,
     dict_to_data,
-    is_missing,
 )
 from mo_files import File
 from mo_files.url import URL
@@ -104,9 +99,6 @@ def expand(doc, doc_url="param://", params=None):
     phase1 = _replace_foreign_ref((doc, None), url)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     phase2 = _replace_locals((phase1, None), url)
     return to_data(phase2)
-
-
-
 
 
 def _replace_foreign_ref(path, url):
@@ -197,4 +189,3 @@ def _replace_foreign_ref(path, url):
         output = defaults
     DEBUG and logger.note("Return {output}", output=output)
     return output
-
