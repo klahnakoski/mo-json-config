@@ -34,8 +34,7 @@ NOTSET = {}
 
 
 def get_file(file):
-    file = File(file)
-    return get("file://" + file.abs_path)
+    return get("file://" + File(file).abs_path)
 
 
 LOOKBACK = 2 if DEBUG else 1
@@ -47,7 +46,7 @@ def get(url):
     """
     url = str(url)
     if "://" not in url:
-        logger.error("{url} must have a prototcol (eg http://) declared", url=url)
+        logger.error("{url} must have a scheme (eg http://) declared", url=url)
     path = (dict_to_data({"$ref": url}), None)
 
     if url.startswith("file://") and url[7] != "/":
