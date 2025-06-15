@@ -15,11 +15,11 @@
     ],
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
     "extras_require": {"tests": [
-        "mo-testing>=8.674.25037",         "keyring>=25.5.0",          "boto3>=1.37.38",
+        "mo-testing>=8.685.25166",         "keyring>=25.5.0",          "boto3>=1.37.38",
                          "pyyaml",            "moto>=5.0.28"
     ]},
     "install_requires": [
-                         "hjson",  "mo-dots==10.685.25166",  "mo-files==6.686.25166",
+                         "hjson",  "mo-dots==10.685.25166",  "mo-files==6.687.25166",
         "mo-future==7.685.25166",   "mo-json==6.686.25166",   "mo-logs==8.685.25166",
                       "requests"
     ],
@@ -400,5 +400,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "5.686.25166"
+    "version": "5.687.25166"
 }

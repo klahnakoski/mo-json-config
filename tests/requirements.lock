@@ -19,7 +19,7 @@ keyring==25.5.0
 MarkupSafe==2.1.4
 mo-collections==5.623.24125
 mo-dots==10.685.25166
-mo-files==6.686.25166
+mo-files==6.687.25166
 mo-future==7.685.25166
 mo-imports==7.685.25166
 mo-json==6.686.25166
