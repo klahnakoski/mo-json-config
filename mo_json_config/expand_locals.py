@@ -12,7 +12,7 @@ NOTSET = {}
 
 
 def _replace_locals(path, url):
-    node = path[0]
+    node, parent = path
     if is_data(node):
         for op, func in operators.items():
             if op in node:
@@ -21,7 +21,7 @@ def _replace_locals(path, url):
     elif is_list(node):
         return [_replace_locals((n, path), url) for n in node]
     elif isinstance(node, str):
-        return _replace_str(node, path[1], url)
+        return _replace_str(node, parent, url)
     return node
 
 

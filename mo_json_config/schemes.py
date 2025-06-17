@@ -29,36 +29,21 @@ DEBUG = False
 
 @mockable
 def _get_file(ref, path, url):
-
-    if ref.path.startswith("~"):
-        home_path = os.path.expanduser("~")
-        if os.sep == "\\":
-            home_path = "/" + home_path.replace(os.sep, "/")
-        if home_path.endswith("/"):
-            home_path = home_path[:-1]
-
-        ref.path = home_path + ref.path[1::]
-    elif not ref.path.startswith("/"):
-        # CONVERT RELATIVE TO ABSOLUTE
-        if ref.path[0] == ".":
-            num_dot = 1
-            while ref.path[num_dot] == ".":
-                num_dot += 1
-
-            parent = url.path.rstrip("/").split("/")[:-num_dot]
-            ref.path = "/".join(parent) + ref.path[num_dot:]
-        else:
-            parent = url.path.rstrip("/").split("/")[:-1]
-            ref.path = "/".join(parent) + "/" + ref.path
-
-    path = ref.path if os.sep != "\\" else ref.path[1::].replace("/", "\\")
+    filename = ref.path
+    file = File(filename)
+    if not filename.startswith(("/", "~")):
+        # RELATIVE FILE, CHECK FOR SIBLING FIRST
+        file = File(url.path).parent / filename or file
+    if not file:
+        logger.error("File {filename} does not exist", filename=file.abs_path)
+    ref = ref.set_path(file.abs_path)
 
     try:
-        DEBUG and logger.note("reading file {path}", path=path)
-        content = File(path).read()
+        DEBUG and logger.note("reading file {path}", path=ref.path)
+        content = file.read()
     except Exception as e:
         content = None
-        logger.error(CAN_NOT_READ_FILE, filename=File(path).os_path, cause=e)
+        logger.error(CAN_NOT_READ_FILE, filename=file, cause=e)
 
     try:
         new_value = json2value(content, params=ref.query, flexible=True, leaves=True)
@@ -67,7 +52,7 @@ def _get_file(ref, path, url):
         try:
             new_value = ini2value(content)
         except Exception:
-            raise logger.error(CAN_NOT_READ_FILE, filename=path, cause=e)
+            raise logger.error(CAN_NOT_READ_FILE, filename=file, cause=e)
     new_value = _replace_foreign_ref((new_value, path), ref)
     return new_value
 

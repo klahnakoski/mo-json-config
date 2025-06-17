@@ -471,8 +471,8 @@ class TestRef(FuzzyTestCase):
         self.assertEqual(result, {"test_key": "test_value"})
 
     def test_too_simple(self):
-        with self.assertRaises(Exception):
-            mo_json_config.get("tests/resources/simple.json")
+        value = mo_json_config.get("tests/resources/simple.json")
+        self.assertAlmostEqual(value, {"test_key":"test_value"})
 
     def test_invalid_scheme(self):
         with self.assertRaises(Exception):
