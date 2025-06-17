@@ -9,14 +9,13 @@ A JSON template format intended for configuration files.
 [See changes](https://github.com/klahnakoski/mo-json-config#version-changes-features)
 
 
-## Motivation
+## Overview
 
 This module reads JSON files and expands references found within. It is much like the IETF's  [JSON Reference](https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-03) specification, but with the following differences:
 
 1. This module uses the dot (`.`) as a path separator in the URL fragment. For example, an absolute reference looks like `{"$ref": "#message.type.name"}`, and a relative reference looks like `{"$ref": "#..type.name"}`.   This syntax better matches that used by Javascript.
 2. The properties found in a `$ref` object are not ignored. Rather, they are to *override* the referenced object properties. This allows you to reference a default document, and replace the particular properties as needed. *more below*
-3. References can accept URL parameters: JSON is treated like a string template for more sophisticated value replacement. *see below*
-4. You can reference 
+3. You can reference 
    * http URLs
    * files
    * environment variables
@@ -28,9 +27,9 @@ This module reads JSON files and expands references found within. It is much lik
 Load your configuration file:
 
 ```python
-import mo_json_config
+from mo_json_config import get
 
-config = mo_json_config.get("file://my_config.json")
+config = get("my_config.json")
 ```
 
 You may use the global `configuration` object for case-insensitive lookup:

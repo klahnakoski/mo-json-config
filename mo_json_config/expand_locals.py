@@ -6,13 +6,12 @@ from mo_logs import logger
 
 from mo_json_config.schemes import scheme_loaders
 
-CAN_NOT_READ_FILE = "Can not read file {filename}"
 DEBUG = False
 NOTSET = {}
 
 
 def _replace_locals(path, url):
-    node = path[0]
+    node, parent = path
     if is_data(node):
         for op, func in operators.items():
             if op in node:
@@ -21,7 +20,7 @@ def _replace_locals(path, url):
     elif is_list(node):
         return [_replace_locals((n, path), url) for n in node]
     elif isinstance(node, str):
-        return _replace_str(node, path[1], url)
+        return _replace_str(node, parent, url)
     return node
 
 
@@ -80,7 +79,7 @@ def _replace_str(text, path, url):
     acc = []
     end = 0
     for found in is_url.finditer(text):
-        acc.append(text[end: found.start()])
+        acc.append(text[end : found.start()])
         try:
             ref = URL(found.group(1))
             if ref.scheme not in scheme_loaders:
