@@ -6,7 +6,6 @@ from mo_logs import logger
 
 from mo_json_config.schemes import scheme_loaders
 
-CAN_NOT_READ_FILE = "Can not read file {filename}"
 DEBUG = False
 NOTSET = {}
 

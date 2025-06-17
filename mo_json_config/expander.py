@@ -16,7 +16,6 @@ from mo_logs import Except, logger, get_stacktrace
 from mo_json_config.expand_locals import _replace_locals, _replace_str
 from mo_json_config.schemes import scheme_loaders
 
-CAN_NOT_READ_FILE = "Can not read file {filename}"
 DEBUG = False
 NOTSET = {}
 LOOKBACK = 2 if DEBUG else 1
