@@ -49,27 +49,27 @@ def get(url):
         logger.error("{url} must have a scheme (eg http://) declared", url=url)
     path = (dict_to_data({"$ref": url}), None)
 
-    if url.startswith("file://") and url[7] != "/":
-        causes = []
-        candidates = [os.path.dirname(os.path.abspath(get_stacktrace(start=LOOKBACK)[0]["file"])), os.getcwd()]
-        for candidate in candidates:
-            if os.sep == "\\":
-                base = URL("file:///" + candidate.replace(os.sep, "/").rstrip("/") + "/.")
-            else:
-                base = URL("file://" + candidate.rstrip("/") + "/.")
-            try:
-                phase1 = _replace_foreign_ref(path, base)
-                break
-            except Exception as cause:
-                if CAN_NOT_READ_FILE in cause:
-                    # lower priority cause
-                    causes.append(cause)
-                else:
-                    causes.insert(0, cause)
+    base = URL("")
+    if url.startswith("file://"):
+        filename = url[7:]
+        file = File(filename)
+        if filename.startswith(("/", "~")):
+            if not file.exists():
+                logger.error("File {filename} does not exist", filename=file.abs_path)
+            base = URL("file://" + file.abs_path)
         else:
-            logger.error("problem replacing ref in {url}", url=url, cause=first(causes))
-    else:
-        phase1 = _replace_foreign_ref(path, URL(""))  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+            sibling = File(get_stacktrace(start=LOOKBACK)[0]["file"]).parent/filename
+            if sibling.exists():
+                base = URL("file://" + sibling.abs_path)
+            elif file.exists():
+                base = URL("file://" + file.abs_path)
+            else:
+                logger.error("File {filename} does not exist", filename=file.abs_path)
+
+    try:
+        phase1 = _replace_foreign_ref(path, base)
+    except Exception as cause:
+        logger.error("problem replacing ref in {url}", url=url, cause=cause)
 
     try:
         phase2 = _replace_locals((phase1, None), url)
