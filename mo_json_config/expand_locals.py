@@ -86,7 +86,7 @@ def _replace_str(text, path, url):
             if ref.scheme not in scheme_loaders:
                 raise logger.error("unknown protocol {ref}", ref=ref)
             value = scheme_loaders[ref.scheme](ref, path, url)
-            if value == None:
+            if is_missing(value):
                 raise logger.error("value not found {ref}", ref=ref)
             acc.append(value)
         except Exception as cause:

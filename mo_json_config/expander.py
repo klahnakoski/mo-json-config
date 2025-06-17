@@ -34,8 +34,7 @@ NOTSET = {}
 
 
 def get_file(file):
-    file = File(file)
-    return get("file://" + file.abs_path)
+    return get("file://" + File(file).abs_path)
 
 
 LOOKBACK = 2 if DEBUG else 1
@@ -45,32 +44,25 @@ def get(url):
     """
     USE json.net CONVENTIONS TO LINK TO INLINE OTHER JSON
     """
-    url = str(url)
-    if "://" not in url:
-        logger.error("{url} must have a prototcol (eg http://) declared", url=url)
-    path = (dict_to_data({"$ref": url}), None)
+    url = URL(url)
+    if not url.scheme:
+        logger.error("{url} must have a scheme (eg http://) declared", url=url)
 
-    if url.startswith("file://") and url[7] != "/":
-        causes = []
-        candidates = [os.path.dirname(os.path.abspath(get_stacktrace(start=LOOKBACK)[0]["file"])), os.getcwd()]
-        for candidate in candidates:
-            if os.sep == "\\":
-                base = URL("file:///" + candidate.replace(os.sep, "/").rstrip("/") + "/.")
-            else:
-                base = URL("file://" + candidate.rstrip("/") + "/.")
-            try:
-                phase1 = _replace_foreign_ref(path, base)
-                break
-            except Exception as cause:
-                if CAN_NOT_READ_FILE in cause:
-                    # lower priority cause
-                    causes.append(cause)
-                else:
-                    causes.insert(0, cause)
-        else:
-            logger.error("problem replacing ref in {url}", url=url, cause=first(causes))
-    else:
-        phase1 = _replace_foreign_ref(path, URL(""))  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    if url.scheme == "file":
+        filename = url.path
+        file = File(filename)
+        if not filename.startswith(("/", "~")):
+            # RELATIVE FILE, CHECK FOR SIBLING FIRST
+            file = File(get_stacktrace(start=LOOKBACK)[0]["file"]).parent/filename or file
+        if not file:
+            logger.error("File {filename} does not exist", filename=file.abs_path)
+        url = url.set_path(file.abs_path)
+
+    try:
+        path = (dict_to_data({"$ref": url}), None)
+        phase1 = _replace_foreign_ref(path, URL(""))
+    except Exception as cause:
+        logger.error("problem replacing ref in {url}", url=url, cause=cause)
 
     try:
         phase2 = _replace_locals((phase1, None), url)
