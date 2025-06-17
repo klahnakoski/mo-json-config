@@ -24,7 +24,6 @@ _replace_foreign_ref = delay_import("mo_json_config.expander._replace_foreign_re
 _replace_locals = delay_import("mo_json_config.expander._replace_locals")
 
 CAN_NOT_READ_FILE = "Can not read file {filename}"
-DEBUG = False
 
 
 @mockable
@@ -39,7 +38,6 @@ def _get_file(ref, path, url):
     ref = ref.set_path(file.abs_path)
 
     try:
-        DEBUG and logger.note("reading file {path}", path=ref.path)
         content = file.read()
     except Exception as e:
         content = None

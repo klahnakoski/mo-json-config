@@ -16,9 +16,8 @@ from mo_logs import Except, logger, get_stacktrace
 from mo_json_config.expand_locals import _replace_locals, _replace_str
 from mo_json_config.schemes import scheme_loaders
 
-DEBUG = False
 NOTSET = {}
-LOOKBACK = 2 if DEBUG else 1
+LOOKBACK = 1
 
 
 def get(url):
@@ -120,8 +119,6 @@ def _replace_foreign_ref(path, url):
         if ref.fragment:
             new_value = get_attr(new_value, ref.fragment)
 
-        DEBUG and logger.note("Replace {ref} with {new_value}", ref=ref, new_value=new_value)
-
         if not output:
             output = new_value
         elif isinstance(output, str):
@@ -137,5 +134,4 @@ def _replace_foreign_ref(path, url):
         output["$default"] = defaults
     if not output and defaults is not NOTSET:
         output = defaults
-    DEBUG and logger.note("Return {output}", output=output)
     return output
