@@ -44,27 +44,20 @@ def get(url):
     """
     USE json.net CONVENTIONS TO LINK TO INLINE OTHER JSON
     """
-    url = str(url)
-    if "://" not in url:
+    url = URL(url)
+    if not url.scheme:
         logger.error("{url} must have a scheme (eg http://) declared", url=url)
-    path = (dict_to_data({"$ref": url}), None)
+    path = (dict_to_data({"$ref": str(url)}), None)
 
     base = URL("")
-    if url.startswith("file://"):
-        filename = url[7:]
+    if url.scheme == "file":
+        filename = url.path
         file = File(filename)
-        if filename.startswith(("/", "~")):
-            if not file:
-                logger.error("File {filename} does not exist", filename=file.abs_path)
-            base = URL("file://" + file.abs_path)
-        else:
-            sibling = File(get_stacktrace(start=LOOKBACK)[0]["file"]).parent/filename
-            if sibling:
-                base = URL("file://" + sibling.abs_path)
-            elif file:
-                base = URL("file://" + file.abs_path)
-            else:
-                logger.error("File {filename} does not exist", filename=file.abs_path)
+        if not filename.startswith(("/", "~")):
+            file = File(get_stacktrace(start=LOOKBACK)[0]["file"]).parent/filename or file
+        if not file:
+            logger.error("File {filename} does not exist", filename=file.abs_path)
+        base = url.set_path(file.abs_path)
 
     try:
         phase1 = _replace_foreign_ref(path, base)
