@@ -80,7 +80,7 @@ def _replace_str(text, path, url):
     acc = []
     end = 0
     for found in is_url.finditer(text):
-        acc.append(text[end: found.start()])
+        acc.append(text[end : found.start()])
         try:
             ref = URL(found.group(1))
             if ref.scheme not in scheme_loaders:

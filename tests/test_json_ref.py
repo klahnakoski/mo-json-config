@@ -472,7 +472,7 @@ class TestRef(FuzzyTestCase):
 
     def test_too_simple(self):
         value = mo_json_config.get("tests/resources/simple.json")
-        self.assertAlmostEqual(value, {"test_key":"test_value"})
+        self.assertAlmostEqual(value, {"test_key": "test_value"})
 
     def test_invalid_scheme(self):
         with self.assertRaises(Exception):
@@ -513,5 +513,3 @@ class TestRef(FuzzyTestCase):
         doc_url = "http://example.com/"
         result = mo_json_config.expand(doc, doc_url, {"name": "test"})
         self.assertEqual(result, {"test": "hello"})
-
-

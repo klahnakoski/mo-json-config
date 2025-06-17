@@ -36,13 +36,7 @@ class TestConfiguration(FuzzyTestCase):
         self.assertEqual(configuration["bigWords"], "D")
 
         self.assertEqual(
-            dict(configuration),
-            {
-                "this.is.a.test":"A",
-                "another.test": "B",
-                "also.a.test999": "C",
-                "big.words": "D"
-            },
+            dict(configuration), {"this.is.a.test": "A", "another.test": "B", "also.a.test999": "C", "big.words": "D"},
         )
 
         a = configuration.another
@@ -71,6 +65,3 @@ class TestConfiguration(FuzzyTestCase):
         key, value = first(os.environ.items())
 
         self.assertEqual(c[key], value)
-
-
-

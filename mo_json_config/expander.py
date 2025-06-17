@@ -8,22 +8,13 @@
 # Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from mo_dots import (
-    is_data,
-    is_list,
-    set_default,
-    to_data,
-    get_attr,
-    listwrap,
-    unwraplist,
-    dict_to_data,
-)
+from mo_dots import is_data, is_list, set_default, to_data, get_attr, listwrap, unwraplist
 from mo_files import File
 from mo_files.url import URL
 from mo_logs import Except, logger, get_stacktrace
 
 from mo_json_config.expand_locals import _replace_locals, _replace_str
-from mo_json_config.schemes import scheme_loaders, _get_file
+from mo_json_config.schemes import scheme_loaders
 
 CAN_NOT_READ_FILE = "Can not read file {filename}"
 DEBUG = False
