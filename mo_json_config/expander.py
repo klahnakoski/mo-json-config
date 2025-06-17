@@ -54,6 +54,7 @@ def get(url):
         filename = url.path
         file = File(filename)
         if not filename.startswith(("/", "~")):
+            # RELATIVE FILE, CHECK FOR SIBLING FIRST
             file = File(get_stacktrace(start=LOOKBACK)[0]["file"]).parent/filename or file
         if not file:
             logger.error("File {filename} does not exist", filename=file.abs_path)
