@@ -54,14 +54,14 @@ def get(url):
         filename = url[7:]
         file = File(filename)
         if filename.startswith(("/", "~")):
-            if not file.exists():
+            if not file:
                 logger.error("File {filename} does not exist", filename=file.abs_path)
             base = URL("file://" + file.abs_path)
         else:
             sibling = File(get_stacktrace(start=LOOKBACK)[0]["file"]).parent/filename
-            if sibling.exists():
+            if sibling:
                 base = URL("file://" + sibling.abs_path)
-            elif file.exists():
+            elif file:
                 base = URL("file://" + file.abs_path)
             else:
                 logger.error("File {filename} does not exist", filename=file.abs_path)
