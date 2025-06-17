@@ -158,7 +158,7 @@ class TestRef(FuzzyTestCase):
         file = "~/___test_file.json"
         source = File.new_instance(get_stacktrace(0)[0]["file"], "../resources/simple.json")
         File.copy(File(source), File(file))
-        content = mo_json_config.get("file:///" + file)
+        content = mo_json_config.get("file://" + file)
 
         try:
             self.assertEqual(content, {"test_key": "test_value"})

@@ -47,9 +47,7 @@ def get(url):
     url = URL(url)
     if not url.scheme:
         logger.error("{url} must have a scheme (eg http://) declared", url=url)
-    path = (dict_to_data({"$ref": str(url)}), None)
 
-    base = URL("")
     if url.scheme == "file":
         filename = url.path
         file = File(filename)
@@ -58,10 +56,11 @@ def get(url):
             file = File(get_stacktrace(start=LOOKBACK)[0]["file"]).parent/filename or file
         if not file:
             logger.error("File {filename} does not exist", filename=file.abs_path)
-        base = url.set_path(file.abs_path)
+        url = url.set_path(file.abs_path)
 
     try:
-        phase1 = _replace_foreign_ref(path, base)
+        path = (dict_to_data({"$ref": url}), None)
+        phase1 = _replace_foreign_ref(path, URL(""))
     except Exception as cause:
         logger.error("problem replacing ref in {url}", url=url, cause=cause)
 
