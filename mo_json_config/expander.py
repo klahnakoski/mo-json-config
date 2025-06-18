@@ -8,72 +8,29 @@
 # Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-import os
-
-from mo_dots import (
-    is_data,
-    is_list,
-    set_default,
-    to_data,
-    get_attr,
-    listwrap,
-    unwraplist,
-    dict_to_data,
-)
+from mo_dots import is_data, is_list, set_default, to_data, get_attr, listwrap, unwraplist
 from mo_files import File
 from mo_files.url import URL
-from mo_future import first
 from mo_logs import Except, logger, get_stacktrace
 
 from mo_json_config.expand_locals import _replace_locals, _replace_str
 from mo_json_config.schemes import scheme_loaders
 
-CAN_NOT_READ_FILE = "Can not read file {filename}"
-DEBUG = False
 NOTSET = {}
-
-
-def get_file(file):
-    return get("file://" + File(file).abs_path)
-
-
-LOOKBACK = 2 if DEBUG else 1
+LOOKBACK = 1
 
 
 def get(url):
-    """
-    USE json.net CONVENTIONS TO LINK TO INLINE OTHER JSON
-    """
-    url = URL(url)
-    if not url.scheme:
-        logger.error("{url} must have a scheme (eg http://) declared", url=url)
+    caller = URL("file://" + File(get_stacktrace(start=LOOKBACK)[0]["file"]).abs_path)
+    return expand(to_data({"$ref": url}), doc_url=caller)
 
-    if url.scheme == "file":
-        filename = url.path
-        file = File(filename)
-        if not filename.startswith(("/", "~")):
-            # RELATIVE FILE, CHECK FOR SIBLING FIRST
-            file = File(get_stacktrace(start=LOOKBACK)[0]["file"]).parent/filename or file
-        if not file:
-            logger.error("File {filename} does not exist", filename=file.abs_path)
-        url = url.set_path(file.abs_path)
 
-    try:
-        path = (dict_to_data({"$ref": url}), None)
-        phase1 = _replace_foreign_ref(path, URL(""))
-    except Exception as cause:
-        logger.error("problem replacing ref in {url}", url=url, cause=cause)
-
-    try:
-        phase2 = _replace_locals((phase1, None), url)
-        return to_data(phase2)
-    except Exception as cause:
-        logger.error("problem replacing locals in\n{phase1}", phase1=phase1, cause=cause)
+get_file = get
 
 
 def expand(doc, doc_url="param://", params=None):
     """
-    ASSUMING YOU ALREADY PULED THE doc FROM doc_url, YOU CAN STILL USE THE
+    ASSUMING YOU ALREADY PULLED THE doc FROM doc_url, YOU CAN STILL USE THE
     EXPANDING FEATURE
 
     USE mo_json_config.expand({}) TO ASSUME CURRENT WORKING DIRECTORY
@@ -83,11 +40,11 @@ def expand(doc, doc_url="param://", params=None):
     :param params: EXTRA PARAMETERS NOT FOUND IN THE doc_url PARAMETERS (WILL SUPERSEDE PARAMETERS FROM doc_url)
     :return: EXPANDED JSON-SERIALIZABLE STRUCTURE
     """
-    if "://" not in doc_url:
+    url = URL(doc_url)
+    if not url.scheme:
         logger.error("{url} must have a protocol (eg https://) declared", url=doc_url)
 
-    url = URL(doc_url)
-    url.query = set_default(url.query, params)
+    url.query = set_default(params, url.query)
     phase1 = _replace_foreign_ref((doc, None), url)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     phase2 = _replace_locals((phase1, None), url)
     return to_data(phase2)
@@ -103,7 +60,7 @@ def _replace_foreign_ref(path, url):
     if url.path.endswith("/"):
         url.path = url.path[:-1]
 
-    node = path[0]
+    node, _ = path
     if is_list(node):
         output = [_replace_foreign_ref((n, path), url) for n in node]
         return output
@@ -162,8 +119,6 @@ def _replace_foreign_ref(path, url):
         if ref.fragment:
             new_value = get_attr(new_value, ref.fragment)
 
-        DEBUG and logger.note("Replace {ref} with {new_value}", ref=ref, new_value=new_value)
-
         if not output:
             output = new_value
         elif isinstance(output, str):
@@ -179,5 +134,4 @@ def _replace_foreign_ref(path, url):
         output["$default"] = defaults
     if not output and defaults is not NOTSET:
         output = defaults
-    DEBUG and logger.note("Return {output}", output=output)
     return output

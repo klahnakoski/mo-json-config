@@ -32,20 +32,6 @@ from mo_json_config import get
 config = get("my_config.json")
 ```
 
-You may use the global `configuration` object for case-insensitive lookup:
-
-
-```python
-from mo_json_config import configuration
-
-# use |= operator to add more configuration
-configuration |= {"some":{"deep":"value"}}
-
-assert configuration.someDeep == "value"
-
-```
-
-
 ## Schemes
 
 This module can load configuration from a number of sources, and you can access them via URI scheme.  Beyond the common `file` and `https` schemes, there are
@@ -86,7 +72,7 @@ The host is in `<username>@<server_name>` format; invoking `keyring.get_password
 
 #### AWS SSM
 
-The `ssm` scheme can be used to read from the AWS parameter store.  Here is an example that will read all parameters that start with "/configuration" and adds them to the global configuration object:
+The `ssm` scheme can be used to read from the AWS parameter store. Here is an example that will read all parameters that start with "/configuration" and adds them to the global configuration object:
 
 ```python
 from mo_json_config import get, configuration
