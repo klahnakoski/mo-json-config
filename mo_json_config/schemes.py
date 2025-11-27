@@ -22,6 +22,7 @@ from mo_json_config.ssm import get_ssm as _get_ssm
 
 _replace_foreign_ref = delay_import("mo_json_config.expander._replace_foreign_ref")
 _replace_locals = delay_import("mo_json_config.expander._replace_locals")
+boto3 = delay_import("boto3")
 
 CAN_NOT_READ_FILE = "Can not read file {filename}"
 
@@ -136,6 +137,18 @@ def _get_value_from_fragment(ref, path, url):
     return new_value
 
 
+def _get_s3(ref, doc_path, url):
+    key = ref.path.strip("/")
+    try:
+        content = boto3.client("s3").get_object(Bucket=ref.host, Key=key)["Body"].read().decode("utf-8")
+        return json2value(content, params=ref.query, flexible=True, leaves=True)
+    except Exception as e:
+        logger.error(
+            "Failed to retrieve s3://{bucket}/{key} as JSON", bucket=ref.host, key=key, cause=e
+        )
+        return None
+
+
 def _nothing(ref, doc_path, url):
     return f"{{{ref}}}"
 
@@ -148,6 +161,7 @@ scheme_loaders = {
     "param": _get_param,
     "keyring": _get_keyring,
     "ssm": _get_ssm,
+    "s3": _get_s3,
     "ref": _get_value_from_fragment,
     "scheme": _nothing,
 }

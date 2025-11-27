@@ -11,12 +11,17 @@
         "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
-        "Programming Language :: Python :: 3.13"
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15"
     ],
     "description": "More JSON Configuration! JSON configuration files with `$ref` and template overlays",
-    "extras_require": {"tests": ["mo-testing", "keyring", "boto3", "pyyaml", "moto"]},
+    "extras_require": {"tests": [
+        "mo-testing>=8.685.25166",         "keyring>=25.5.0",          "boto3>=1.37.38",
+                         "pyyaml",            "moto>=5.0.28"
+    ]},
     "install_requires": [
-                         "hjson",  "mo-dots==10.685.25166",  "mo-files==6.690.25168",
+                         "hjson",  "mo-dots==10.685.25166",  "mo-files==6.698.25331",
         "mo-future==7.685.25166",   "mo-json==6.686.25166",   "mo-logs==8.685.25166",
                       "requests"
     ],
@@ -46,6 +51,7 @@
             "   * environment variables",
             "   * keyring values",
             "   * AWS SSM parameters",
+            "   * AWS S3 files",
             "",
             "## Quick guide",
             "",
@@ -382,5 +388,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "5.693.25169"
+    "version": "5.698.25331"
 }
