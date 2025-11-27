@@ -138,11 +138,9 @@ def _get_value_from_fragment(ref, path, url):
 
 
 def _get_s3(ref, doc_path, url):
-    key = ref.path.lstrip("/")
+    key = ref.path.strip("/")
     try:
-        content = (
-            boto3.client("s3").get_object(Bucket=ref.host, Key=key)["Body"].read().decode("utf-8")
-        )
+        content = boto3.client("s3").get_object(Bucket=ref.host, Key=key)["Body"].read().decode("utf-8")
         return json2value(content, params=ref.query, flexible=True, leaves=True)
     except Exception as e:
         logger.error(
