@@ -20,7 +20,7 @@ from mo_future import get_function_name, decorate
 from mo_logs.exceptions import get_stacktrace
 from mo_testing.fuzzytestcase import FuzzyTestCase, add_error_reporting
 from mo_threads import stop_main_thread
-from moto import mock_aws as mock_ssm
+from moto import mock_aws as mock_ssm, mock_aws
 
 import mo_json_config
 from mo_json_config import ssm as _ssm
@@ -513,3 +513,41 @@ class TestRef(FuzzyTestCase):
         doc_url = "http://example.com/"
         result = mo_json_config.expand(doc, doc_url, {"name": "test"})
         self.assertEqual(result, {"test": "hello"})
+
+    def test_s3_ref1(self):
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        with mock_aws():
+            # Create a mock S3 bucket and object
+            s3 = boto3.client("s3")
+            bucket_name = "test-bucket"
+            object_key = "test-key"
+            object_content = '{"test_key": "test_value"}'
+
+            s3.create_bucket(Bucket=bucket_name)
+            s3.put_object(Bucket=bucket_name, Key=object_key, Body=object_content)
+
+            # Test retrieving the object using the s3 scheme
+            url = f"s3://{bucket_name}/{object_key}"
+            result = mo_json_config.get(url)
+
+            # Assert the content matches the expected value
+            self.assertEqual(result, {"test_key": "test_value"})
+
+    def test_s3_ref2(self):
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        with mock_aws():
+            # Create a mock S3 bucket and object
+            s3 = boto3.client("s3")
+            bucket_name = "test-bucket"
+            object_key = "test-key"
+            object_content = '{"test_key": "test_value"}'
+
+            s3.create_bucket(Bucket=bucket_name)
+            s3.put_object(Bucket=bucket_name, Key=object_key, Body=object_content)
+
+            # Test retrieving the object using the s3 scheme
+            url = f"s3://{bucket_name}/{object_key}/"
+            result = mo_json_config.get(url)
+
+            # Assert the content matches the expected value
+            self.assertEqual(result, {"test_key": "test_value"})

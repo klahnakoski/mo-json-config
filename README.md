@@ -21,6 +21,7 @@ This module reads JSON files and expands references found within. It is much lik
    * environment variables
    * keyring values
    * AWS SSM parameters
+   * AWS S3 files
 
 ## Quick guide
 
