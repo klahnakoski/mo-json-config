@@ -7,6 +7,7 @@
 #
 # Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
+import json
 import os
 from unittest import skipIf
 
