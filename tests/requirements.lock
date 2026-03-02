@@ -1,4 +1,4 @@
-# Tests pass with python 3.8 on 2026-02-16 and with these versions
+# Tests pass with python 3.8 on 2026-03-02 and with these versions
 # pip install --no-deps -r tests/requirements.lock
 boto3==1.37.38
 botocore==1.37.38
@@ -19,16 +19,16 @@ keyring==25.5.0
 MarkupSafe==2.1.4
 mo-collections==5.623.24125
 mo-dots==10.685.25166
-mo-files==6.699.26047
+mo-files==6.701.26061
 mo-future==7.685.25166
 mo-imports==7.685.25166
-mo-json==6.686.25166
-mo-kwargs==7.685.25166
-mo-logs==8.685.25166
+mo-json==6.701.26061
+mo-kwargs==8.700.26061
+mo-logs==8.701.26061
 mo-math==7.685.25166
 mo-testing==8.685.25166
 mo-threads==6.623.24125
-mo-times==5.685.25166
+mo-times==5.701.26061
 more-itertools==10.2.0
 moto==5.0.28
 pycparser==2.21
