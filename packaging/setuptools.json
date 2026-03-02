@@ -21,8 +21,8 @@
                          "pyyaml",            "moto>=5.0.28"
     ]},
     "install_requires": [
-                         "hjson",  "mo-dots==10.685.25166",  "mo-files==6.702.26061",
-        "mo-future==7.685.25166",   "mo-json==6.702.26061",   "mo-logs==8.702.26061",
+                         "hjson",  "mo-dots==10.685.25166",  "mo-files==6.703.26061",
+        "mo-future==7.685.25166",   "mo-json==6.703.26061",   "mo-logs==8.703.26061",
                       "requests"
     ],
     "license": "MPL 2.0",
@@ -388,5 +388,5 @@
     "name": "mo-json-config",
     "packages": ["mo_json_config"],
     "url": "https://github.com/klahnakoski/mo-json-config",
-    "version": "5.702.26061"
+    "version": "5.703.26061"
 }
